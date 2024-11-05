@@ -212,7 +212,7 @@ uint8_t PORT_ReadInputDataBit(MDR_PORT_TypeDef* MDR_PORTx, PORT_Pin_TypeDef PORT
     assert_param(IS_PORT_ALL_PERIPH(MDR_PORTx));
     assert_param(IS_GET_PORT_PIN(PORT_Pin));
 
-    if ((MDR_PORTx->RXTX & (uint32_t)PORT_Pin) != RESET)
+      if ((MDR_PORTx->RXTX & (uint32_t)PORT_Pin) != RESET)
     {
         bitstatus = (uint8_t)SET;
     }

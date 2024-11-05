@@ -2,6 +2,7 @@
 #include "MDR32F9Qx_dma.h"
 #include "MDR32F9Qx_ssp.h"
 #include "MDR32Fx.h"
+#include "algos.h"
 #include "joystick.h"
 #include "delay.h"
 
@@ -93,6 +94,10 @@ static void init_SPI() {
   SSP_Init(MDR_SSP2, &SPI_init_struct);
 
   // DMA
+  RST_CLK_PCLKcmd(RST_CLK_PCLK_SSP1 | RST_CLK_PCLK_SSP2 | RST_CLK_PCLK_DMA, ENABLE);
+  /* Disable all DMA request */
+  MDR_DMA->CHNL_REQ_MASK_CLR = 0xFFFFFFFF;
+  MDR_DMA->CHNL_USEBURST_CLR = 0xFFFFFFFF;
   DMA_DeInit();
   NVIC_ClearPendingIRQ(DMA_IRQn);
   NVIC_EnableIRQ(DMA_IRQn);
@@ -119,16 +124,28 @@ static void convert_pixels_for_spi(pixel_t* pix, uint8_t* result) {
 
 static void send_pixels() {
   convert_pixels_for_spi(pixels, tx_arr);
-  // for (uint32_t i = 0; i < LEDS_NUMBER * 24; i++) {
-  // while (!(MDR_SSP2->SR & SSP_FLAG_TFE)) {}
-  // SSP_SendData(MDR_SSP2, tx_arr[i]);
-  // }
-  state.tx_in_progress = true;
-  DMA_Init(DMA_Channel_SSP2_TX, &DMA_InitStr);
-  SSP_DMACmd(MDR_SSP2, SSP_DMA_TXE, ENABLE);
+
+  // non DMA
+  for (uint32_t i = 0; i < LEDS_NUMBER * 24; i++) {
+    while (!(MDR_SSP2->SR & SSP_FLAG_TFE)) {}
+    SSP_SendData(MDR_SSP2, tx_arr[i]);
+    state.tx_in_progress = false;
+  }
+
+  // DMA (doesn't work properly because of transaction size)
+
+  // state.tx_in_progress = true;
+  // DMA_TX_PriCtrlStr.DMA_CycleSize = sizeof(tx_arr);
+  // DMA_TX_PriCtrlStr.DMA_SourceBaseAddr = (uint32_t)tx_arr;
+  // DMA_InitStr.DMA_PriCtrlData = &DMA_TX_PriCtrlStr;
+  // DMA_Init(DMA_Channel_SSP2_TX, &DMA_InitStr);
+  // SSP_DMACmd(MDR_SSP2, SSP_DMA_TXE, ENABLE);
+
 }
 
 void DMA_IRQHandler(void) {
+  SSP_DMACmd(MDR_SSP2, SSP_DMA_TXE, DISABLE);
+  DMA_Cmd(DMA_Channel_SSP2_TX, DISABLE);
   state.tx_in_progress = false;
 }
 
@@ -145,10 +162,16 @@ static void joystick_loop() {
     state.paused = !(state.paused);
     break;
   case RIGHT:
-    state.selected_algo_index = (state.selected_algo_index >= state.num_reg_algos) ? 0 : state.selected_algo_index + 1;
+    state.selected_algo_index++;
+    if (state.selected_algo_index >= state.num_reg_algos)
+      state.selected_algo_index = 0;
     break;
   case LEFT:
-    state.selected_algo_index = (state.selected_algo_index == 0) ? state.num_reg_algos : state.selected_algo_index - 1;
+    if (state.selected_algo_index == 0) {
+      state.selected_algo_index = state.num_reg_algos - 1;
+    } else {
+      state.selected_algo_index--;
+    }
     break;
   case UP:
     state.speed = (state.speed > 245) ? 255 : state.speed + 8;
@@ -171,7 +194,7 @@ static void main_loop() {
     return;
   t0_main_loop = GetMs();
 
-  if (!(state.paused)) {
+  if (!(state.paused) && (state.num_reg_algos > 0)) {
     state.ms += main_loop_period_ms; // инкрементировать время
     state.algos[state.selected_algo_index](pixels); // вызов функции генерации
     while (state.tx_in_progress) {}; // ждём, если надо
@@ -187,11 +210,13 @@ int main() {
   }
 
   init_CPU();
+  init_SPI();
   init_joystick();
   init_SysTick();
 
   /* !!Регистрация алгоритмов!! */
-
+  register_alg(all_white);
+  register_alg(all_red);
 
   while (1) {
     joystick_loop();

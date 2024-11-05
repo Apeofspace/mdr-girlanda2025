@@ -14,6 +14,7 @@
 #define ONE 0xF0
 #define ZERO 0xC0
 #define MAX_ALGOS 20 // добавить, если не хватает
+#define MAX_BRIGHTNESS 100 // ограничить яркость
 
 typedef struct __packed__ {
   // It's blue, red, green in this order!
@@ -36,5 +37,7 @@ typedef struct {
 extern pixel_t pixels[LEDS_NUMBER];
 extern uint8_t tx_arr[LEDS_NUMBER * 3 * 8];
 extern global_state_t state;
+
+void DMA_IRQHandler(void);
 
 #endif

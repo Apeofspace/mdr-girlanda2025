@@ -118,7 +118,7 @@ add_executable(${OUTPUT_NAME}.elf ${C_SRC} ${C_LIBS} ${STARTUP_SCRIPT} ${LINKER_
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${OUTPUT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${OUTPUT_NAME}.bin)
 
-# target_link_libraries(${OUTPUT_NAME} m) # link math.h 
+target_link_libraries(${OUTPUT_NAME}.elf m) # link math.h 
 
 add_custom_command(TARGET ${OUTPUT_NAME}.elf POST_BUILD
     COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${OUTPUT_NAME}.elf> ${HEX_FILE}
