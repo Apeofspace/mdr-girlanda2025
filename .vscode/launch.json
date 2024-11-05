@@ -1,0 +1,31 @@
+  
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "JLink Debug",
+			"cwd": "${workspaceRoot}",
+			"executable": "${workspaceRoot}/build/output.elf",
+			"svdFile": "${workspaceRoot}/svd/MDR1986BE92.svd",
+			"request": "launch",
+			"type": "cortex-debug",
+			"servertype": "jlink",
+			"device": "K1986BE92QI",
+			"interface": "jtag",
+			"preLaunchTask": "flash-jlink-K1986BE92QI",
+			"showDevDebugOutput": "raw",
+		},
+		{
+			"name": "JLink Attach",
+			"cwd": "${workspaceRoot}",
+			"executable": "${workspaceRoot}/build/output.elf",
+			"svdFile": "${workspaceRoot}/svd/MDR1986BE92.svd",
+			"request": "attach",
+			"type": "cortex-debug",
+			"servertype": "jlink",
+			"device": "K1986BE92QI",
+			"interface": "jtag",
+			"showDevDebugOutput": "raw",
+		}
+	]
+}

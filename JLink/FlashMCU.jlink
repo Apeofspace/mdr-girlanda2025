@@ -1,0 +1,7 @@
+r
+erase
+h
+loadfile build/output.bin, 0x08000000
+verifybin build/output.bin, 0x08000000
+r
+q

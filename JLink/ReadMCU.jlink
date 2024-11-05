@@ -1,0 +1,4 @@
+savebin readed_mcu_firmvare/firm.bin, 0x08000000, 0x20000
+r
+g
+q
