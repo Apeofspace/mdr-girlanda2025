@@ -24,14 +24,18 @@ typedef struct __packed__ {
 } pixel_t;
 
 typedef struct {
-  uint32_t ms;
-  uint8_t speed;
-  uint8_t brightness;
-  bool paused;
-  bool tx_in_progress;
-  uint16_t num_reg_algos;
-  uint16_t selected_algo_index;
-  void (*algos[MAX_ALGOS])(pixel_t *pix);
+  uint32_t ms; // миллисекунд с начала работы (минус паузы)
+  uint8_t speed; // скорость 0..255 (по умолчанию 128)
+  uint8_t brightness; // яркость 0..255 (по умолчанию 128)
+  struct {
+    bool paused;
+    bool tx_in_progress;
+  } flags ;
+  struct {
+    uint16_t count;
+    uint16_t selected;
+    void (*funcs[MAX_ALGOS])(pixel_t *pix);
+  } algos ;
 } global_state_t;
 
 extern pixel_t pixels[LEDS_NUMBER];

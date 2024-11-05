@@ -12,10 +12,14 @@ global_state_t state = {
   .ms = 0,
   .speed = 128,
   .brightness = 128,
-  .tx_in_progress = false,
-  .paused = false,
-  .num_reg_algos = 0,
-  .selected_algo_index = 0,
+  .algos = {
+    .count = 0,
+    .selected = 0,
+  },
+  .flags = {
+    .tx_in_progress = false,
+    .paused = false,
+  },
 };
 
 DMA_ChannelInitTypeDef DMA_InitStr = {
@@ -129,7 +133,7 @@ static void send_pixels() {
   for (uint32_t i = 0; i < LEDS_NUMBER * 24; i++) {
     while (!(MDR_SSP2->SR & SSP_FLAG_TFE)) {}
     SSP_SendData(MDR_SSP2, tx_arr[i]);
-    state.tx_in_progress = false;
+    state.flags.tx_in_progress = false;
   }
 
   // DMA (doesn't work properly because of transaction size)
@@ -146,31 +150,31 @@ static void send_pixels() {
 void DMA_IRQHandler(void) {
   SSP_DMACmd(MDR_SSP2, SSP_DMA_TXE, DISABLE);
   DMA_Cmd(DMA_Channel_SSP2_TX, DISABLE);
-  state.tx_in_progress = false;
+  state.flags.tx_in_progress = false;
 }
 
 static void register_alg(void func(pixel_t *pix)) {
-  if (state.num_reg_algos < MAX_ALGOS) {
-    state.algos[state.num_reg_algos] = func;
-    state.num_reg_algos++;
+  if (state.algos.count < MAX_ALGOS) {
+    state.algos.funcs[state.algos.count] = func;
+    state.algos.count++;
   }
 }
 
 static void joystick_loop() {
   switch (joystick_get_key()) {
   case SEL:
-    state.paused = !(state.paused);
+    state.flags.paused = !(state.flags.paused);
     break;
   case RIGHT:
-    state.selected_algo_index++;
-    if (state.selected_algo_index >= state.num_reg_algos)
-      state.selected_algo_index = 0;
+    state.algos.selected++;
+    if (state.algos.selected >= state.algos.count)
+      state.algos.selected = 0;
     break;
   case LEFT:
-    if (state.selected_algo_index == 0) {
-      state.selected_algo_index = state.num_reg_algos - 1;
+    if (state.algos.selected == 0) {
+      state.algos.selected = state.algos.count - 1;
     } else {
-      state.selected_algo_index--;
+      state.algos.selected--;
     }
     break;
   case UP:
@@ -194,10 +198,10 @@ static void main_loop() {
     return;
   t0_main_loop = GetMs();
 
-  if (!(state.paused) && (state.num_reg_algos > 0)) {
+  if (!(state.flags.paused) && (state.algos.count > 0)) {
     state.ms += main_loop_period_ms; // инкрементировать время
-    state.algos[state.selected_algo_index](pixels); // вызов функции генерации
-    while (state.tx_in_progress) {}; // ждём, если надо
+    state.algos.funcs[state.algos.selected](pixels); // вызов функции генерации
+    while (state.flags.tx_in_progress) {}; // ждём, если надо
     send_pixels(); // отправка на гирлянду
   }
 }

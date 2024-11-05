@@ -26,3 +26,6 @@ void all_white(pixel_t *pix) {
   }
 }
 
+void running_dot(pixel_t *pix){
+
+}
