@@ -66,3 +66,26 @@ void running_red_dot(pixel_t *pix) {
   glowing_sides(pix, led_index_l, led_index_r, 3);
 }
 
+void breath_colors(pixel_t *pix) {
+  /* Всеми цветами дышит */
+  const uint32_t period = 2000 * (float)255 / state.speed;
+  const static float bc_sin_offset = M_TWOPI / 3;
+  static float bc_period = 0;
+  static uint32_t bc_last_ms = 0; // время последнего вызова
+  uint32_t delta_t = bc_last_ms - state.ms;
+  bc_last_ms = state.ms;
+  bc_period += (float)(delta_t % period) / period;
+  bc_period = fmodf(bc_period, M_TWOPI);
+  int16_t r, g, b;
+  float led_offset;
+  for (uint16_t i = 0; i < LEDS_NUMBER; i++) {
+    led_offset = M_TWOPI * (float)i / LEDS_NUMBER;
+    r = MAX_BRIGHTNESS * sin(led_offset + bc_period);
+    g = MAX_BRIGHTNESS * sin(led_offset + bc_period + bc_sin_offset);
+    b = MAX_BRIGHTNESS * sin(led_offset + bc_period + bc_sin_offset * 2);
+    pix[i].red = (r < 0) ? 0 : r;
+    pix[i].green = (g < 0) ? 0 : g;
+    pix[i].blue = (b < 0) ? 0 : b;
+  }
+}
+
