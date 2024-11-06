@@ -14,7 +14,6 @@
 #define ONE 0xF0
 #define ZERO 0xC0
 #define MAX_ALGOS 20 // добавить, если не хватает
-#define MAX_BRIGHTNESS 100 // ограничить яркость
 
 typedef struct __packed__ {
   // It's blue, red, green in this order!
@@ -26,8 +25,8 @@ typedef struct __packed__ {
 typedef struct {
   uint32_t ms; // миллисекунд с начала работы (минус паузы)
   uint32_t last_ms; // время предыдущего вызова алгоритма
-  uint8_t speed; // скорость 0..255 (по умолчанию 128)
-  uint8_t brightness; // яркость 0..255 (по умолчанию 128)
+  float speed; // скорость 0..1 (по умолчанию 0.5)
+  float brightness; // яркость 0..1 (по умолчанию 0.5)
   struct {
     bool paused;
     bool tx_in_progress;

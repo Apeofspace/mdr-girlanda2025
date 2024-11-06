@@ -11,8 +11,8 @@ uint8_t tx_arr[LEDS_NUMBER * 3 * 8];
 global_state_t state = {
   .ms = 0,
   .last_ms = 0,
-  .speed = 128,
-  .brightness = 128,
+  .speed = 0.5,
+  .brightness = 0.5,
   .algos = {
     .count = 0,
     .selected = 0,
@@ -179,10 +179,10 @@ static void joystick_loop() {
     }
     break;
   case UP:
-    state.speed = (state.speed > 245) ? 255 : state.speed + 8;
+    state.speed = (state.speed >= 0.85) ? 1 : state.speed + 0.1;
     break;
   case DOWN:
-    state.speed = (state.speed < 10) ? 0 : state.speed - 8;
+    state.speed = (state.speed <= 0.25) ? 0.1 : state.speed - 0.1;
     break;
   case NOKEY:
   default:
@@ -192,7 +192,7 @@ static void joystick_loop() {
 
 static void main_loop() {
   // программный таймер
-  const static uint32_t main_loop_period_ms = 20;
+  const static uint32_t main_loop_period_ms = 50;
   static uint32_t t0_main_loop = 0;
   uint32_t time_elapsed = GetMs() - t0_main_loop;
   if (time_elapsed < main_loop_period_ms)
@@ -221,10 +221,8 @@ int main() {
   init_SysTick();
 
   /* !!Регистрация алгоритмов!! */
-  register_alg(breath_colors);
+  register_alg(breath_colors_rgb_table);
   register_alg(running_red_dot);
-  register_alg(all_white);
-  register_alg(all_red);
 
   while (1) {
     joystick_loop();
