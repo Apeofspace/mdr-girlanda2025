@@ -71,9 +71,7 @@ void breath_colors(pixel_t *pix) {
   const uint32_t period = 2000 * (float)255 / state.speed;
   const static float bc_sin_offset = M_TWOPI / 3;
   static float bc_period = 0;
-  static uint32_t bc_last_ms = 0; // время последнего вызова
-  uint32_t delta_t = bc_last_ms - state.ms;
-  bc_last_ms = state.ms;
+  uint32_t delta_t = state.last_ms - state.ms;
   bc_period += (float)(delta_t % period) / period;
   bc_period = fmodf(bc_period, M_TWOPI);
   int16_t r, g, b;
@@ -89,3 +87,5 @@ void breath_colors(pixel_t *pix) {
   }
 }
 
+void breath_colors_table(pixel_t *pix){
+}

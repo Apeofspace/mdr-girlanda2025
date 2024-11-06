@@ -10,6 +10,7 @@ pixel_t pixels[LEDS_NUMBER];
 uint8_t tx_arr[LEDS_NUMBER * 3 * 8];
 global_state_t state = {
   .ms = 0,
+  .last_ms = 0,
   .speed = 128,
   .brightness = 128,
   .algos = {
@@ -201,6 +202,7 @@ static void main_loop() {
   if (!(state.flags.paused) && (state.algos.count > 0)) {
     state.ms += main_loop_period_ms; // инкрементировать время
     state.algos.funcs[state.algos.selected](pixels); // вызов функции генерации
+    state.last_ms = state.ms;
     while (state.flags.tx_in_progress) {}; // ждём, если надо
     send_pixels(); // отправка на гирлянду
   }

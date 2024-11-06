@@ -25,6 +25,7 @@ typedef struct __packed__ {
 
 typedef struct {
   uint32_t ms; // миллисекунд с начала работы (минус паузы)
+  uint32_t last_ms; // время предыдущего вызова алгоритма
   uint8_t speed; // скорость 0..255 (по умолчанию 128)
   uint8_t brightness; // яркость 0..255 (по умолчанию 128)
   struct {
