@@ -5,6 +5,7 @@
 #include "algos.h"
 #include "joystick.h"
 #include "delay.h"
+#include <string.h>
 
 pixel_t pixels[LEDS_NUMBER];
 uint8_t tx_arr[LEDS_NUMBER * 3 * 8];
@@ -127,12 +128,13 @@ static void convert_pixels_for_spi(pixel_t* pix, uint8_t* result) {
   }
 }
 
-static void send_pixels() {
+void send_pixels() {
   convert_pixels_for_spi(pixels, tx_arr);
 
   // non DMA
   for (uint32_t i = 0; i < LEDS_NUMBER * 24; i++) {
-    while (!(MDR_SSP2->SR & SSP_FLAG_TFE)) {}
+    while (state.flags.tx_in_progress) {}; // ждём, если надо
+    while (!(MDR_SSP2->SR & SSP_FLAG_TFE)) {};
     SSP_SendData(MDR_SSP2, tx_arr[i]);
     state.flags.tx_in_progress = false;
   }
@@ -203,7 +205,6 @@ static void main_loop() {
     state.ms += main_loop_period_ms; // инкрементировать время
     state.algos.funcs[state.algos.selected](pixels); // вызов функции генерации
     state.last_ms = state.ms;
-    while (state.flags.tx_in_progress) {}; // ждём, если надо
     send_pixels(); // отправка на гирлянду
   }
 }
@@ -220,7 +221,10 @@ int main() {
   init_joystick();
   init_SysTick();
 
+  memset(pixels, 0x1C, sizeof(pixels));
+
   /* !!Регистрация алгоритмов!! */
+  register_alg(lenochka);
   register_alg(breath_colors_rgb_table);
   register_alg(running_red_dot);
 

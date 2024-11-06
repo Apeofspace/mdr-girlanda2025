@@ -43,5 +43,6 @@ extern uint8_t tx_arr[LEDS_NUMBER * 3 * 8];
 extern global_state_t state;
 
 void DMA_IRQHandler(void);
+void send_pixels();
 
 #endif
