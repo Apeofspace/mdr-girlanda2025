@@ -219,6 +219,7 @@ int main() {
   init_SysTick();
 
   /* !!Регистрация алгоритмов!! */
+  register_alg(running_dot);
   register_alg(all_white);
   register_alg(all_red);
 
