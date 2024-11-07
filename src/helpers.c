@@ -8,7 +8,7 @@ inline void clear_pixels(pixel_t *pix) {
   }
 }
 
-inline void set_pix_color(pixel_t *pix, uint8_t *rgb) {
+inline void set_pix_color(pixel_t *pix, const uint8_t *rgb) {
   pix->red = rgb[0];
   pix->green = rgb[1];
   pix->blue = rgb[2];
@@ -16,6 +16,7 @@ inline void set_pix_color(pixel_t *pix, uint8_t *rgb) {
 
 void glowing_sides(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t num_glowing_leds) {
   /* Сияние слева и справа от заданных границ (не включительно) */
+  // устойчиво к выходам за пределы массива
   for (uint8_t i = 1; i <= num_glowing_leds; i++) {
     uint16_t led_ind;
     uint8_t brightness;

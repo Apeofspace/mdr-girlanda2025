@@ -194,7 +194,7 @@ static void joystick_loop() {
 
 static void main_loop() {
   // программный таймер
-  const static uint32_t main_loop_period_ms = 50;
+  const static uint32_t main_loop_period_ms = 25;
   static uint32_t t0_main_loop = 0;
   uint32_t time_elapsed = GetMs() - t0_main_loop;
   if (time_elapsed < main_loop_period_ms)
@@ -224,9 +224,11 @@ int main() {
   memset(pixels, 0x1C, sizeof(pixels));
 
   /* !!Регистрация алгоритмов!! */
+  register_alg(scratch);
+  register_alg(scratch_breathing);
   register_alg(teleporting_snakes);
   register_alg(breath_colors);
-  register_alg(running_red_dot);
+  // register_alg(running_red_dot);
 
   while (1) {
     joystick_loop();
