@@ -115,6 +115,6 @@ void scratch(pixel_t *pix) {
 }
 
 void scratch_breathing(pixel_t *pix) {
-  breath_colors(pix);
+  breath_colors2(pix);
   baseline_scratch(pix);
 }

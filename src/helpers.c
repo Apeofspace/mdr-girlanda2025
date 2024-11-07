@@ -40,3 +40,4 @@ inline float get_delta_period(const uint32_t period) {
   uint32_t delta_t = state.ms - state.last_ms;
   return (float)(delta_t % period) / period;
 }
+

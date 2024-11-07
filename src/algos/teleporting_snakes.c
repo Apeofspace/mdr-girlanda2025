@@ -2,7 +2,7 @@
 #include "helpers.h"
 
 #define _L_WIDTH 5
-#define _L_GLOW_WIDTH 8
+#define _L_GLOW_WIDTH 10
 typedef struct {
   float pos;
   float hop_pos;
@@ -16,19 +16,19 @@ void teleporting_snakes(pixel_t *pix) {
     .hopped = false,
     .pos = 0,
     .hop_pos = 0.685,
-    .colors1 = {
-      {128, 0, 0}, // middle and extensions (extensions go both sides)
-      {128, 0, 0},
-      {128, 0, 0},
-      {128, 0, 0},
-      {128, 0, 0},
+    .colors1 = { // middle and extensions (extensions go both sides)
+      {128, 0, 40},
+      {128, 0, 40},
+      {128, 0, 80},
+      {128, 0, 80},
+      {128, 0, 80},
     },
     .colors2 = {
-      {0, 0, 128}, // middle and extensions (extensions go both sides)
-      {0, 0, 128},
-      {0, 0, 128},
-      {0, 0, 128},
-      {0, 0, 128},
+      {40, 0, 128},
+      {40, 0, 128},
+      {80, 0, 128},
+      {80, 0, 128},
+      {80, 0, 128},
     },
   };
   clear_pixels(pix);
@@ -53,23 +53,15 @@ void teleporting_snakes(pixel_t *pix) {
     ex_l2 = ((i2 - i) < 0) ? 0 : i2 - i;
     ex_r2 = ((i2 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i2 + i;
     if (!par.hopped) {
-      pix[ex_l1].red = 255 * state.brightness;
-      pix[ex_r1].red = 255 * state.brightness;
-      pix[ex_l2].blue = 255 * state.brightness;
-      pix[ex_r2].blue = 255 * state.brightness;
-      // set_pix_color(&pix[ex_l1], l_colors1[i]);
-      // set_pix_color(&pix[ex_r1], l_colors1[i]);
-      // set_pix_color(&pix[ex_l2], l_colors2[i]);
-      // set_pix_color(&pix[ex_r2], l_colors2[i]);
+      set_pix_color(&pix[ex_l1], par.colors1[i]);
+      set_pix_color(&pix[ex_r1], par.colors1[i]);
+      set_pix_color(&pix[ex_l2], par.colors2[i]);
+      set_pix_color(&pix[ex_r2], par.colors2[i]);
     } else {
-      // set_pix_color(&pix[ex_l1], l_colors2[i]);
-      // set_pix_color(&pix[ex_r1], l_colors2[i]);
-      // set_pix_color(&pix[ex_l2], l_colors1[i]);
-      // set_pix_color(&pix[ex_r2], l_colors1[i]);
-      pix[ex_l1].blue = 255 * state.brightness;
-      pix[ex_r1].blue = 255 * state.brightness;
-      pix[ex_l2].red = 255 * state.brightness;
-      pix[ex_r2].red = 255 * state.brightness;
+      set_pix_color(&pix[ex_l1], par.colors2[i]);
+      set_pix_color(&pix[ex_r1], par.colors2[i]);
+      set_pix_color(&pix[ex_l2], par.colors1[i]);
+      set_pix_color(&pix[ex_r2], par.colors1[i]);
     }
   }
   glowing_sides(pix, ex_l1, ex_r1, glow_width);
@@ -92,14 +84,10 @@ void teleporting_snakes(pixel_t *pix) {
         ex_r1 = ((i1 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i1 + i;
         ex_l2 = ((i2 - i) < 0) ? 0 : i2 - i;
         ex_r2 = ((i2 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i2 + i;
-        // set_pix_color(&pix[ex_l1], l_colors1[i]);
-        // set_pix_color(&pix[ex_r1], l_colors1[i]);
-        // set_pix_color(&pix[ex_l2], l_colors2[i]);
-        // set_pix_color(&pix[ex_r2], l_colors2[i]);
-        pix[ex_l1].red = 255 * state.brightness;
-        pix[ex_r1].red = 255 * state.brightness;
-        pix[ex_l2].blue = 255 * state.brightness;
-        pix[ex_r2].blue = 255 * state.brightness;
+        set_pix_color(&pix[ex_l1], par.colors1[i]);
+        set_pix_color(&pix[ex_r1], par.colors1[i]);
+        set_pix_color(&pix[ex_l2], par.colors2[i]);
+        set_pix_color(&pix[ex_r2], par.colors2[i]);
       }
       if (extensions) {
         glow_width -= 2;
@@ -118,14 +106,10 @@ void teleporting_snakes(pixel_t *pix) {
         ex_r1 = ((i1 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i1 + i;
         ex_l2 = ((i2 - i) < 0) ? 0 : i2 - i;
         ex_r2 = ((i2 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i2 + i;
-        // set_pix_color(&pix[ex_l1], l_colors2[i]);
-        // set_pix_color(&pix[ex_r1], l_colors2[i]);
-        // set_pix_color(&pix[ex_l2], l_colors1[i]);
-        // set_pix_color(&pix[ex_r2], l_colors1[i]);
-        pix[ex_l1].blue = 255 * state.brightness;
-        pix[ex_r1].blue = 255 * state.brightness;
-        pix[ex_l2].red = 255 * state.brightness;
-        pix[ex_r2].red = 255 * state.brightness;
+        set_pix_color(&pix[ex_l1], par.colors2[i]);
+        set_pix_color(&pix[ex_r1], par.colors2[i]);
+        set_pix_color(&pix[ex_l2], par.colors1[i]);
+        set_pix_color(&pix[ex_r2], par.colors1[i]);
       }
       extensions++;
       glow_width += 2;

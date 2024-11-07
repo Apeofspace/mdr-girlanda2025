@@ -29,6 +29,7 @@ typedef struct {
   uint32_t last_ms; // время предыдущего вызова алгоритма
   float speed; // скорость 0..1 (по умолчанию 0.5)
   float brightness; // яркость 0..1 (по умолчанию 0.5)
+  bool recently_switched_algo; // поменяли алгоритм только что
   struct {
     bool paused;
     bool tx_in_progress;

@@ -4,6 +4,9 @@
 #include "main.h"
 #include "delay.h"
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 void clear_pixels(pixel_t *pix);
 void set_pix_color(pixel_t *pix, const uint8_t *rgb);
 void glowing_sides(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t num_glowing_leds);

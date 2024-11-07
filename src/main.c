@@ -14,6 +14,7 @@ global_state_t state = {
   .last_ms = 0,
   .speed = 0.5,
   .brightness = 0.5,
+  .recently_switched_algo = true,
   .algos = {
     .count = 0,
     .selected = 0,
@@ -172,6 +173,7 @@ static void joystick_loop() {
     state.algos.selected++;
     if (state.algos.selected >= state.algos.count)
       state.algos.selected = 0;
+    state.recently_switched_algo = true;
     break;
   case LEFT:
     if (state.algos.selected == 0) {
@@ -179,6 +181,7 @@ static void joystick_loop() {
     } else {
       state.algos.selected--;
     }
+    state.recently_switched_algo = true;
     break;
   case UP:
     state.speed = (state.speed >= 0.85) ? 1 : state.speed + 0.1;
@@ -204,6 +207,7 @@ static void main_loop() {
   if (!(state.flags.paused) && (state.algos.count > 0)) {
     state.ms += main_loop_period_ms; // инкрементировать время
     state.algos.funcs[state.algos.selected](pixels); // вызов функции генерации
+    state.recently_switched_algo = false;
     state.last_ms = state.ms;
     send_pixels(); // отправка на гирлянду
   }
@@ -224,11 +228,11 @@ int main() {
   memset(pixels, 0x1C, sizeof(pixels));
 
   /* !!Регистрация алгоритмов!! */
+  register_alg(teleporting_snakes);
   register_alg(scratch);
   register_alg(scratch_breathing);
-  register_alg(teleporting_snakes);
   register_alg(breath_colors);
-  // register_alg(running_red_dot);
+  register_alg(breath_colors2);
 
   while (1) {
     joystick_loop();
