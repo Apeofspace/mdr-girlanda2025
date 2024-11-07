@@ -224,8 +224,8 @@ int main() {
   memset(pixels, 0x1C, sizeof(pixels));
 
   /* !!Регистрация алгоритмов!! */
-  register_alg(lenochka);
-  register_alg(breath_colors_rgb_table);
+  register_alg(teleporting_snakes);
+  register_alg(breath_colors);
   register_alg(running_red_dot);
 
   while (1) {
