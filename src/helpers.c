@@ -8,10 +8,22 @@ inline void clear_pixels(pixel_t *pix) {
   }
 }
 
-inline void set_pix_color(pixel_t *pix, const uint8_t *rgb) {
+inline void set_pix_color(pixel_t *pix, uint8_t r, uint8_t g, uint8_t b) {
+  pix->red = r;
+  pix->green = g;
+  pix->blue = b;
+}
+
+inline void set_pix_color_arr(pixel_t *pix, const uint8_t *rgb) {
   pix->red = rgb[0];
   pix->green = rgb[1];
   pix->blue = rgb[2];
+}
+
+inline void copy_pix_color(pixel_t *pix_dest, pixel_t *pix_source ) {
+  pix_dest->red = pix_source->red;
+  pix_dest->green = pix_source->green;
+  pix_dest->blue = pix_source->blue;
 }
 
 void glowing_sides(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t num_glowing_leds) {
@@ -23,15 +35,15 @@ void glowing_sides(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t
     brightness = 255 * state.brightness / (i * i);
     if (ind_left > i) {
       led_ind = ind_left - i;
-      pix[led_ind].red = brightness;
-      pix[led_ind].green = brightness;
-      pix[led_ind].blue = brightness;
+      pix[led_ind].red += brightness;
+      pix[led_ind].green += brightness;
+      pix[led_ind].blue += brightness;
     }
     if (ind_right < (LEDS_NUMBER - i)) {
       led_ind = ind_right + i;
-      pix[led_ind].red = brightness;
-      pix[led_ind].green = brightness;
-      pix[led_ind].blue = brightness;
+      pix[led_ind].red += brightness;
+      pix[led_ind].green += brightness;
+      pix[led_ind].blue += brightness;
     }
   }
 }
