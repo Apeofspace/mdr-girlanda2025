@@ -95,7 +95,7 @@ void snake_baseline(pixel_t *pix) {
     set_random_pixel_color(&(snake.food.pix));
   }
   // win
-  if (snake.len >= LEDS_NUMBER - 1) {
+  if (snake.len >= LEDS_NUMBER - 2) {
     // placeholder
     state.recently_switched_algo = true; // force reinit
   }
@@ -106,7 +106,7 @@ void snake_baseline(pixel_t *pix) {
   }
   // draw food
   copy_pix_color(&(pix[snake.food.pos]), &(snake.food.pix));
-  glowing_sides(pix, snake.food.pos, snake.food.pos, 2);
+  // glowing_sides(pix, snake.food.pos, snake.food.pos, 2);
 }
 
 void danger_noodle(pixel_t *pix) {
