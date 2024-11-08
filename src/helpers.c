@@ -53,3 +53,19 @@ inline float get_delta_period(const uint32_t period) {
   return (float)(delta_t % period) / period;
 }
 
+// Linear Congruential Generator (LCG)
+// Constants for the LCG (parameters from Numerical Recipes)
+#define LCG_A 1664525
+#define LCG_C 1013904223
+#define LCG_M 0xFFFFFFFF // 2^32
+uint32_t random(uint32_t new_seed) {
+  static uint32_t seed = 12345;
+  if (new_seed != 0)
+    seed = new_seed;
+  seed = (LCG_A * seed + LCG_C) % LCG_M;
+  return (uint8_t)(seed & 0xFF);
+}
+
+// uint32_t random(uint32_t new_seed) {
+//   return 50;
+// }

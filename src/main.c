@@ -228,11 +228,12 @@ int main() {
   memset(pixels, 0x1C, sizeof(pixels));
 
   /* !!Регистрация алгоритмов!! */
-  register_alg(teleporting_snakes);
+  register_alg(danger_noodle);
+  register_alg(breath_colors2);
   register_alg(scratch);
+  register_alg(teleporting_snakes);
   register_alg(scratch_breathing);
   register_alg(breath_colors);
-  register_alg(breath_colors2);
 
   while (1) {
     joystick_loop();

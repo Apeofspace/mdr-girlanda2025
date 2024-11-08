@@ -17,7 +17,7 @@ set(MCU_MODEL MDR1986VE9x)
 
 #----COMPILER SETTINGS----
 enable_language(C CXX ASM)
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -121,6 +121,7 @@ set(HEX_FILE ${PROJECT_BINARY_DIR}/${OUTPUT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${OUTPUT_NAME}.bin)
 
 target_link_libraries(${OUTPUT_NAME}.elf m) # link math.h 
+# target_link_libraries(${OUTPUT_NAME}.elf c)
 
 add_custom_command(TARGET ${OUTPUT_NAME}.elf POST_BUILD
     COMMAND ${CMAKE_OBJCOPY} -Oihex $<TARGET_FILE:${OUTPUT_NAME}.elf> ${HEX_FILE}

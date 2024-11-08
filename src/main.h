@@ -8,7 +8,7 @@
 #include "MDR32F9Qx_ssp.h"
 #include "MDR32F9Qx_dma.h"
 #include <stdint.h>
-#include <stdbool.h>
+// #include <stdbool.h>
 #include "math.h"
 // #include "MDR32F9Qx_timer.h"
 

@@ -96,13 +96,13 @@ uint16_t baseline_scratch(pixel_t *pix) {
     int z = (ind + i);
     if (!(z < LEDS_NUMBER)) {
       // Правая граница
-      set_pix_color(&pix[LEDS_NUMBER], red);
+      set_pix_color_arr(&pix[LEDS_NUMBER], red);
     } else if (!(z > 0)) {
       //z отрицательное. Левая граница
-      set_pix_color(&pix[0], red);
+      set_pix_color_arr(&pix[0], red);
     } else {
       //всё нормально
-      set_pix_color(&pix[z], par.colors[i]);
+      set_pix_color_arr(&pix[z], par.colors[i]);
     }
   }
   return ind;

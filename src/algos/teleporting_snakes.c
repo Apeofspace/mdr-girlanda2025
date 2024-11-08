@@ -53,15 +53,15 @@ void teleporting_snakes(pixel_t *pix) {
     ex_l2 = ((i2 - i) < 0) ? 0 : i2 - i;
     ex_r2 = ((i2 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i2 + i;
     if (!par.hopped) {
-      set_pix_color(&pix[ex_l1], par.colors1[i]);
-      set_pix_color(&pix[ex_r1], par.colors1[i]);
-      set_pix_color(&pix[ex_l2], par.colors2[i]);
-      set_pix_color(&pix[ex_r2], par.colors2[i]);
+      set_pix_color_arr(&pix[ex_l1], par.colors1[i]);
+      set_pix_color_arr(&pix[ex_r1], par.colors1[i]);
+      set_pix_color_arr(&pix[ex_l2], par.colors2[i]);
+      set_pix_color_arr(&pix[ex_r2], par.colors2[i]);
     } else {
-      set_pix_color(&pix[ex_l1], par.colors2[i]);
-      set_pix_color(&pix[ex_r1], par.colors2[i]);
-      set_pix_color(&pix[ex_l2], par.colors1[i]);
-      set_pix_color(&pix[ex_r2], par.colors1[i]);
+      set_pix_color_arr(&pix[ex_l1], par.colors2[i]);
+      set_pix_color_arr(&pix[ex_r1], par.colors2[i]);
+      set_pix_color_arr(&pix[ex_l2], par.colors1[i]);
+      set_pix_color_arr(&pix[ex_r2], par.colors1[i]);
     }
   }
   glowing_sides(pix, ex_l1, ex_r1, glow_width);
@@ -84,10 +84,10 @@ void teleporting_snakes(pixel_t *pix) {
         ex_r1 = ((i1 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i1 + i;
         ex_l2 = ((i2 - i) < 0) ? 0 : i2 - i;
         ex_r2 = ((i2 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i2 + i;
-        set_pix_color(&pix[ex_l1], par.colors1[i]);
-        set_pix_color(&pix[ex_r1], par.colors1[i]);
-        set_pix_color(&pix[ex_l2], par.colors2[i]);
-        set_pix_color(&pix[ex_r2], par.colors2[i]);
+        set_pix_color_arr(&pix[ex_l1], par.colors1[i]);
+        set_pix_color_arr(&pix[ex_r1], par.colors1[i]);
+        set_pix_color_arr(&pix[ex_l2], par.colors2[i]);
+        set_pix_color_arr(&pix[ex_r2], par.colors2[i]);
       }
       if (extensions) {
         glow_width -= 2;
@@ -106,10 +106,10 @@ void teleporting_snakes(pixel_t *pix) {
         ex_r1 = ((i1 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i1 + i;
         ex_l2 = ((i2 - i) < 0) ? 0 : i2 - i;
         ex_r2 = ((i2 + i) > LEDS_NUMBER) ? LEDS_NUMBER : i2 + i;
-        set_pix_color(&pix[ex_l1], par.colors2[i]);
-        set_pix_color(&pix[ex_r1], par.colors2[i]);
-        set_pix_color(&pix[ex_l2], par.colors1[i]);
-        set_pix_color(&pix[ex_r2], par.colors1[i]);
+        set_pix_color_arr(&pix[ex_l1], par.colors2[i]);
+        set_pix_color_arr(&pix[ex_r1], par.colors2[i]);
+        set_pix_color_arr(&pix[ex_l2], par.colors1[i]);
+        set_pix_color_arr(&pix[ex_r2], par.colors1[i]);
       }
       extensions++;
       glow_width += 2;
