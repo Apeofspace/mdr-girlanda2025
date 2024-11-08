@@ -1,6 +1,7 @@
 #include "delay.h"
 #include "main.h"
 #include "helpers.h"
+#include <string.h>
 
 // NOTE pixels can be same pos or same dir, but never both
 typedef struct {
@@ -45,6 +46,7 @@ int get_new_food_pos(snake_par_t *snake) {
 void init_snake(snake_par_t *snake) {
   // draw smol noodle
   snake->len = 2;
+  memset(snake, 0, sizeof(snake_par_t));
   for (int i = 0; i <= snake->len; i++) {
     struct body_pix_t *b = &(snake->body[i]);
     b->pos = 4 - i;
