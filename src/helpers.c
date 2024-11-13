@@ -1,4 +1,5 @@
 #include "helpers.h"
+#include "MDR32F9Qx_adc.h"
 
 inline void clear_pixels(pixel_t *pix) {
   for (uint16_t i = 0; i < LEDS_NUMBER; i++) {
@@ -58,14 +59,61 @@ inline float get_delta_period(const uint32_t period) {
 #define LCG_A 1664525
 #define LCG_C 1013904223
 #define LCG_M 0xFFFFFFFF // 2^32
+uint32_t _h_seed = 12345;
 uint32_t random(uint32_t new_seed) {
-  static uint32_t seed = 12345;
   if (new_seed != 0)
-    seed = new_seed;
-  seed = (LCG_A * seed + LCG_C) % LCG_M;
-  return (uint8_t)(seed & 0xFF);
+    _h_seed = new_seed;
+  _h_seed = (LCG_A * _h_seed + LCG_C) % LCG_M;
+  return (uint8_t)(_h_seed & 0xFF);
 }
 
-// uint32_t random(uint32_t new_seed) {
-//   return 50;
-// }
+int get_noise_from_ADC() {
+  // ШУМ для сидирования псевдорандома
+  uint32_t t0 = GetMs();
+  ADC1_SetChannel(ADC_CH_ADC1);
+  ADC1_Start();
+  while (!(ADC1_GetStatus() & ADCx_FLAG_END_OF_CONVERSION)) {
+    if (GetMs() - t0 > 2) {
+      // timeout error
+      return 12345;
+    }
+  }
+  return (uint16_t)ADC1_GetResult();
+}
+
+void init_ADC_noise() {
+  // ADC для генерации рандомного шума
+  ADC_InitTypeDef ADC_InitStruct;
+  ADCx_InitTypeDef ADCx_InitStruct;
+  PORT_InitTypeDef GPIO_InitStruct;
+  // /* тактирование на ADC порте D */
+  RST_CLK_PCLKcmd(RST_CLK_PCLK_PORTD, ENABLE);
+  RST_CLK_PCLKcmd(RST_CLK_PCLK_ADC, ENABLE);
+
+  /* GPIO ADC channels*/
+  GPIO_InitStruct.PORT_Pin = PORT_Pin_7;
+  GPIO_InitStruct.PORT_OE = PORT_OE_IN;
+  GPIO_InitStruct.PORT_FUNC = PORT_FUNC_PORT;
+  GPIO_InitStruct.PORT_MODE = PORT_MODE_ANALOG;
+  GPIO_InitStruct.PORT_SPEED = PORT_SPEED_MAXFAST;
+  PORT_Init(MDR_PORTD, &GPIO_InitStruct);
+
+  /* Переинициализация ADC и структур для настройки ADC */
+  ADC_DeInit();
+  ADC_StructInit(&ADC_InitStruct);
+  ADCx_StructInit(&ADCx_InitStruct);
+
+  ADCx_InitStruct.ADC_DelayGo = 0x7; // доп. задержка, если channel switching
+  ADCx_InitStruct.ADC_SamplingMode = ADC_SAMPLING_MODE_SINGLE_CONV;
+  ADCx_InitStruct.ADC_ChannelNumber = ADC_CH_ADC7;
+  ADCx_InitStruct.ADC_Prescaler = ADC_CLK_div_16; // выбор делителя тактовой частоты
+
+  ADC_Init(&ADC_InitStruct);
+  ADC1_Init(&ADCx_InitStruct);
+  ADC1_Cmd(ENABLE); // ВКЛЮЧИТЬ АЦП
+}
+
+void init_RNG() {
+  init_ADC_noise();
+  _h_seed = get_noise_from_ADC();
+}

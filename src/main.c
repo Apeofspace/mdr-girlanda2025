@@ -3,6 +3,7 @@
 #include "MDR32F9Qx_ssp.h"
 #include "MDR32Fx.h"
 #include "algos.h"
+#include "helpers.h"
 #include "joystick.h"
 #include "delay.h"
 #include <string.h>
@@ -224,6 +225,7 @@ int main() {
   init_SPI();
   init_joystick();
   init_SysTick();
+  init_RNG();
 
   memset(pixels, 0x1C, sizeof(pixels));
 

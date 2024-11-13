@@ -14,5 +14,6 @@ void copy_pix_color(pixel_t *pix_dest, pixel_t *pix_source );
 void glowing_sides(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t num_glowing_leds);
 float get_delta_period(const uint32_t period);
 uint32_t random(uint32_t new_seed);
+void init_RNG();
 
 #endif

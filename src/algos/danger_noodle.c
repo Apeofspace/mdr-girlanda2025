@@ -45,8 +45,24 @@ int get_new_food_pos(snake_par_t *snake) {
 
 void init_snake(snake_par_t *snake) {
   // draw smol noodle
+  // memset(snake, 0, sizeof(snake_par_t));
+
+  // < MANUAL CLEAN >
+  for (int i = 0; i < LEDS_NUMBER; i++) {
+    struct body_pix_t *b = &(snake->body[i]);
+    b->pos = 0;
+    b->dir = 1;
+    b->pix.red = 0;
+    b->pix.green = 0;
+    b->pix.blue = 0;
+  }
+  snake->food.pos = 100;
+  snake->food.pix.red = 100;
+  snake->food.pix.green = 100;
+  snake->food.pix.blue = 100;
+  // </MANUAL CLEAN>
+
   snake->len = 2;
-  memset(snake, 0, sizeof(snake_par_t));
   for (int i = 0; i <= snake->len; i++) {
     struct body_pix_t *b = &(snake->body[i]);
     b->pos = 4 - i;
@@ -55,7 +71,6 @@ void init_snake(snake_par_t *snake) {
   }
   set_pix_color(&(snake->body[0].pix), 255, 0, 0); // head is red
   // spawn new food
-  random(GetMs());
   snake->food.pos = get_new_food_pos(snake);
   set_random_pixel_color(&(snake->food.pix));
 }
@@ -66,6 +81,7 @@ void snake_baseline(pixel_t *pix) {
   // init
   if (state.recently_switched_algo) {
     init_snake(&snake);
+    head = &(snake.body[0]);
   }
   // move body
   for (int i = 0; i <= snake.len; i++) {
