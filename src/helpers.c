@@ -31,6 +31,12 @@ inline void copy_pix_color(pixel_t *pix_dest, pixel_t *pix_source ) {
   pix_dest->blue = pix_source->blue;
 }
 
+inline void set_random_pixel_color(pixel_t *pix) {
+  pix->red = random(0) % (uint16_t)(255 * state.brightness);
+  pix->green = random(0) % (uint16_t)(255 * state.brightness);
+  pix->blue = random(0) % (uint16_t)(255 * state.brightness);
+}
+
 void glowing_sides(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t num_glowing_leds) {
   /* Сияние слева и справа от заданных границ (не включительно) */
   // устойчиво к выходам за пределы массива

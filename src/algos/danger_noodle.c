@@ -1,6 +1,13 @@
 #include "main.h"
 #include "helpers.h"
 
+#define _S_TIMEOUT_MS 300
+struct snake_errors_t {
+  volatile uint32_t food_gen;
+} snake_errors = {
+  .food_gen = 0,
+};
+
 // NOTE pixels can be same pos or same dir, but never both
 typedef struct {
   int len;
@@ -15,16 +22,10 @@ typedef struct {
   } food;
 } snake_par_t;
 
-void set_random_pixel_color(pixel_t *pix) {
-  // WARN may not be very random
-  pix->red = random(0) % (uint16_t)(255 * state.brightness);
-  pix->green = random(0) % (uint16_t)(255 * state.brightness);
-  pix->blue = random(0) % (uint16_t)(255 * state.brightness);
-}
-
 int get_new_food_pos(snake_par_t *snake) {
   bool bad = true;
   int pos = 0;
+  uint32_t t0 = GetMs();
   while (bad) {
     bad = false;
     pos = (uint32_t)random(0) % LEDS_NUMBER;
@@ -34,10 +35,15 @@ int get_new_food_pos(snake_par_t *snake) {
         break;
       }
     }
+    if ((GetMs() - t0) >= _S_TIMEOUT_MS) {
+      snake_errors.food_gen++;
+      pos = 0;
+      break;
+    }
   }
   // sanity check
   pos = MAX(0, pos);
-  pos = MIN(LEDS_NUMBER, pos);
+  pos = MIN(LEDS_NUMBER - 1, pos);
   return pos;
 }
 
