@@ -8,7 +8,6 @@ struct snake_errors_t {
   .food_gen = 0,
 };
 
-// NOTE pixels can be same pos or same dir, but never both
 typedef struct {
   int len;
   struct body_pix_t {
@@ -21,6 +20,7 @@ typedef struct {
     int pos;
   } food;
 } snake_par_t;
+snake_par_t snake1;
 
 int get_new_food_pos(snake_par_t *snake) {
   bool bad = true;
@@ -79,17 +79,11 @@ void init_snake(snake_par_t *snake) {
   set_random_pixel_color(&(snake->food.pix));
 }
 
-void snake_baseline(pixel_t *pix) {
-  static snake_par_t snake;
-  struct body_pix_t *head = &(snake.body[0]);
-  // init
-  if (state.recently_switched_algo) {
-    init_snake(&snake);
-    head = &(snake.body[0]);
-  }
+void snake_baseline(snake_par_t *snake, pixel_t *pix) {
+  struct body_pix_t *head = &(snake->body[0]);
   // move body
-  for (int i = 0; i <= snake.len; i++) {
-    struct body_pix_t *b = &(snake.body[i]);
+  for (int i = 0; i <= snake->len; i++) {
+    struct body_pix_t *b = &(snake->body[i]);
     int new_pos = b->pos + b->dir;
     b->pos = new_pos;
     if ((new_pos == 0) || (new_pos == (LEDS_NUMBER - 1))) {
@@ -97,11 +91,11 @@ void snake_baseline(pixel_t *pix) {
     }
   }
   // eat food
-  if (head->pos == snake.food.pos) {
+  if (head->pos == snake->food.pos) {
     // expand snake
-    struct body_pix_t *tail = &(snake.body[snake.len]);
-    snake.len++;
-    struct body_pix_t *new_pix = &(snake.body[snake.len]);
+    struct body_pix_t *tail = &(snake->body[snake->len]);
+    snake->len++;
+    struct body_pix_t *new_pix = &(snake->body[snake->len]);
     if ((tail->pos == 0) || (tail->pos == LEDS_NUMBER)) {
       // spawned on the pivot point
       new_pix->pos = tail->pos;
@@ -111,27 +105,31 @@ void snake_baseline(pixel_t *pix) {
       new_pix->pos = tail->pos - tail->dir;
       new_pix->dir = tail->dir;
     }
-    copy_pix_color(&(new_pix->pix), &(snake.food.pix));
+    copy_pix_color(&(new_pix->pix), &(snake->food.pix));
     // spawn new food
-    snake.food.pos = get_new_food_pos(&snake);
-    set_random_pixel_color(&(snake.food.pix));
+    snake->food.pos = get_new_food_pos(snake);
+    set_random_pixel_color(&(snake->food.pix));
   }
   // win
-  if (snake.len >= LEDS_NUMBER - 2) {
+  if (snake->len >= LEDS_NUMBER - 2) {
     // placeholder
     state.recently_switched_algo = true; // force reinit
   }
   // draw everything
-  for (int i = snake.len; i >= 0; i--) {
-    struct body_pix_t *b = &(snake.body[i]);
+  for (int i = snake->len; i >= 0; i--) {
+    struct body_pix_t *b = &(snake->body[i]);
     copy_pix_color(&(pix[b->pos]), &(b->pix));
   }
   // draw food
-  copy_pix_color(&(pix[snake.food.pos]), &(snake.food.pix));
+  copy_pix_color(&(pix[snake->food.pos]), &(snake->food.pix));
   // glowing_sides(pix, snake.food.pos, snake.food.pos, 2);
 }
 
 void danger_noodle(pixel_t *pix) {
+  // init
+  if (state.recently_switched_algo) {
+    init_snake(&snake1);
+  }
   clear_pixels(pix);
-  snake_baseline(pix);
+  snake_baseline(&snake1, pix);
 }
