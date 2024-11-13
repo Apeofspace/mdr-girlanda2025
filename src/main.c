@@ -205,7 +205,8 @@ static void main_loop() {
 
   if (!(state.flags.paused) && (state.algos.count > 0)) {
     state.ms += main_loop_period_ms; // инкрементировать время
-    state.algos.funcs[state.algos.selected](pixels); // вызов функции генерации
+    void (*algo_func)(pixel_t*) = state.algos.funcs[state.algos.selected];
+    algo_func(pixels); // вызов функции генерации
     state.recently_switched_algo = false;
     state.last_ms = state.ms;
     send_pixels(); // отправка на гирлянду
@@ -225,10 +226,11 @@ int main() {
   init_SysTick();
   init_RNG();
 
-  memset(pixels, 0x1C, sizeof(pixels));
+  memset(pixels, 0, sizeof(pixels));
 
   /* !!Регистрация алгоритмов!! */
   register_alg(danger_noodle);
+  register_alg(two_noodles);
   register_alg(breath_colors2);
   register_alg(scratch);
   register_alg(teleporting_snakes);

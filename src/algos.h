@@ -10,5 +10,6 @@ void teleporting_snakes(pixel_t *pix);
 void scratch(pixel_t *pix);
 void scratch_breathing(pixel_t *pix);
 void danger_noodle(pixel_t *pix);
+void two_noodles(pixel_t *pix);
 
 #endif
