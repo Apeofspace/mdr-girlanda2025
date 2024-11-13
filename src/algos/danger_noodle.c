@@ -4,23 +4,33 @@
 #define _S_TIMEOUT_MS 300
 struct snake_errors_t {
   volatile uint32_t food_gen;
+  volatile uint32_t init_params_error;
 } snake_errors = {
   .food_gen = 0,
+  .init_params_error = 0,
 };
 
+typedef enum {FORWARD = 1, BACKWARD = -1} snake_dir_t;
+
 typedef struct {
+  struct sn_properties_t {
+    int max_len;
+    int start_pos;
+    snake_dir_t start_dir;
+  } properties;
   int len;
   struct body_pix_t {
     pixel_t pix;
     int pos;
-    int dir; //1 or -1
+    snake_dir_t dir; //1 or -1
   } body[LEDS_NUMBER];
   struct food_pix_t {
     pixel_t pix;
     int pos;
   } food;
 } snake_par_t;
-snake_par_t snake1;
+
+volatile bool _sn_reinit_required = false;
 
 int get_new_food_pos(snake_par_t *snake) {
   bool bad = true;
@@ -47,7 +57,7 @@ int get_new_food_pos(snake_par_t *snake) {
   return pos;
 }
 
-void init_snake(snake_par_t *snake) {
+void init_snake(snake_par_t *snake, int max_len, int start_pos, int start_dir) {
   // draw smol noodle
   // memset(snake, 0, sizeof(snake_par_t)); // auto clean
 
@@ -66,17 +76,31 @@ void init_snake(snake_par_t *snake) {
   snake->food.pix.blue = 100;
   // </MANUAL CLEAN>
 
+  // asserts (not extensive really)
+  if (!(((start_dir == -1) || (start_dir == 1)) && ((start_pos > 0) && (start_pos <= LEDS_NUMBER)))) {
+    snake_errors.init_params_error++;
+    state.flags.paused = true;
+    return;
+  }
+
+  snake->properties.start_dir = start_dir;
+  snake->properties.start_pos = start_pos;
+  snake->properties.max_len = max_len;
   snake->len = 2;
   for (int i = 0; i <= snake->len; i++) {
     struct body_pix_t *b = &(snake->body[i]);
-    b->pos = 4 - i;
-    b->dir = 1;
+    b->dir = snake->properties.start_dir;
+    b->pos = snake->properties.start_pos - i * b->dir;
+    // sanity check
+    b->pos = MAX(0, b->pos);
+    b->pos = MIN(LEDS_NUMBER - 1, b->pos);
     set_random_pixel_color(&(b->pix));
   }
   set_pix_color(&(snake->body[0].pix), 255, 0, 0); // head is red
   // spawn new food
   snake->food.pos = get_new_food_pos(snake);
   set_random_pixel_color(&(snake->food.pix));
+  _sn_reinit_required = false;
 }
 
 void snake_baseline(snake_par_t *snake, pixel_t *pix) {
@@ -96,7 +120,7 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
     struct body_pix_t *tail = &(snake->body[snake->len]);
     snake->len++;
     struct body_pix_t *new_pix = &(snake->body[snake->len]);
-    if ((tail->pos == 0) || (tail->pos == LEDS_NUMBER)) {
+    if ((tail->pos == 0) || (tail->pos == (LEDS_NUMBER - 1))) {
       // spawned on the pivot point
       new_pix->pos = tail->pos;
       new_pix->dir = tail->dir * -1;
@@ -105,15 +129,18 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
       new_pix->pos = tail->pos - tail->dir;
       new_pix->dir = tail->dir;
     }
+    // sanity check
+    new_pix->pos = MAX(0, new_pix->pos);
+    new_pix->pos = MIN(LEDS_NUMBER - 1, new_pix->pos);
     copy_pix_color(&(new_pix->pix), &(snake->food.pix));
     // spawn new food
     snake->food.pos = get_new_food_pos(snake);
     set_random_pixel_color(&(snake->food.pix));
   }
   // win
-  if (snake->len >= LEDS_NUMBER - 2) {
+  if (snake->len >= (snake->properties.max_len)) {
     // placeholder
-    state.recently_switched_algo = true; // force reinit
+    _sn_reinit_required = true;
   }
   // draw everything
   for (int i = snake->len; i >= 0; i--) {
@@ -126,9 +153,9 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
 }
 
 void danger_noodle(pixel_t *pix) {
-  // init
-  if (state.recently_switched_algo) {
-    init_snake(&snake1);
+  static snake_par_t snake1;
+  if (state.recently_switched_algo || _sn_reinit_required) {
+    init_snake(&snake1, LEDS_NUMBER - 1, 3, 1);
   }
   clear_pixels(pix);
   snake_baseline(&snake1, pix);
