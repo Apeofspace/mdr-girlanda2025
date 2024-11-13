@@ -4,8 +4,6 @@
 #include "MDR32Fx.h"
 #include "algos.h"
 #include "helpers.h"
-#include "joystick.h"
-#include "delay.h"
 #include <string.h>
 
 pixel_t pixels[LEDS_NUMBER];

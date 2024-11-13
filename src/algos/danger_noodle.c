@@ -1,7 +1,5 @@
-#include "delay.h"
 #include "main.h"
 #include "helpers.h"
-#include <string.h>
 
 // NOTE pixels can be same pos or same dir, but never both
 typedef struct {
@@ -45,9 +43,9 @@ int get_new_food_pos(snake_par_t *snake) {
 
 void init_snake(snake_par_t *snake) {
   // draw smol noodle
-  // memset(snake, 0, sizeof(snake_par_t));
+  // memset(snake, 0, sizeof(snake_par_t)); // auto clean
 
-  // < MANUAL CLEAN >
+  // <MANUAL CLEAN>
   for (int i = 0; i < LEDS_NUMBER; i++) {
     struct body_pix_t *b = &(snake->body[i]);
     b->pos = 0;
@@ -88,7 +86,7 @@ void snake_baseline(pixel_t *pix) {
     struct body_pix_t *b = &(snake.body[i]);
     int new_pos = b->pos + b->dir;
     b->pos = new_pos;
-    if ((new_pos == 0) || (new_pos == LEDS_NUMBER)) {
+    if ((new_pos == 0) || (new_pos == (LEDS_NUMBER - 1))) {
       b->dir *= -1; // flip dir when hits the ends
     }
   }
