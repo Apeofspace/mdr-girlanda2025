@@ -31,7 +31,7 @@ inline void copy_pix_color(pixel_t *pix_dest, pixel_t *pix_source ) {
   pix_dest->blue = pix_source->blue;
 }
 
-inline void set_random_pixel_color(pixel_t *pix) {
+void set_random_pixel_color(pixel_t *pix) {
   // weighted for extra fun
   uint8_t base_brightness = state.brightness * 255;
   float rweight = 1, bweight = 1, gweight = 1;

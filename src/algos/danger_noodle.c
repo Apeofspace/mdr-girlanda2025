@@ -3,12 +3,13 @@
 
 #define _S_TIMEOUT_MS 300
 struct snake_errors_t {
-  volatile uint32_t food_gen;
+  volatile uint32_t food_gen_pos;
+  volatile uint32_t food_gen_timeout;
   volatile uint32_t init_params_error;
   volatile uint32_t init_wrong_position;
   volatile uint32_t wrong_position;
 } snake_errors = {
-  .food_gen = 0,
+  .food_gen_pos = 0,
   .init_params_error = 0,
 };
 
@@ -51,16 +52,15 @@ int get_new_food_pos(snake_par_t *snake) {
     }
     // timeout on rng
     if ((GetMs() - t0) >= _S_TIMEOUT_MS) {
-      snake_errors.food_gen++;
-      pos = 0;
+      snake_errors.food_gen_timeout++;
+      pos = snake->properties.domain_left_border;
       break;
     }
   }
   // sanity check
   if ((pos < 0) || (pos > (LEDS_NUMBER - 1))) {
-    snake_errors.food_gen++;
-    pos = MAX(0, pos);
-    pos = MIN(LEDS_NUMBER - 1, pos);
+    snake_errors.food_gen_pos++;
+    pos = snake->properties.domain_left_border;
   }
   return pos;
 }
@@ -200,7 +200,7 @@ void two_noodles(pixel_t *pix) {
     init_snake(&snake2, 99, 100, BACKWARD);
   }
   if (snake1.victory_achieved) {
-    init_snake(&snake1, 100, 0, FORWARD);
+    init_snake(&snake1, 99, 0, FORWARD);
   }
   if (snake2.victory_achieved) {
     init_snake(&snake2, 99, 100, BACKWARD);
