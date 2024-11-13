@@ -133,7 +133,7 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
   struct body_pix_t *head = &(snake->body[0]);
   int left_border = snake->properties.domain_left_border;
   int right_border = left_border + snake->properties.max_len;
-  // move body
+  // MOVE BODY
   for (int i = 0; i <= snake->len; i++) {
     struct body_pix_t *b = &(snake->body[i]);
     int new_pos = b->pos + b->dir;
@@ -142,7 +142,7 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
       b->dir *= -1; // flip dir when head hits the zone borders
     }
   }
-  // eat food
+  // EAT FOOD
   if (head->pos == snake->food.pos) {
     // expand snake
     struct body_pix_t *tail = &(snake->body[snake->len]);
@@ -164,21 +164,22 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
       new_pix->pos = MIN(LEDS_NUMBER - 1, new_pix->pos);
     }
     copy_pix_color(&(new_pix->pix), &(snake->food.pix));
-    // spawn new food
-    snake->food.pos = get_new_food_pos(snake);
-    set_random_pixel_color(&(snake->food.pix));
+    // win?
+    if (snake->len >= (snake->properties.max_len)) {
+      // TODO cool animated sequence
+      snake->victory_achieved = true;
+    } else{
+      // spawn new food
+      snake->food.pos = get_new_food_pos(snake);
+      set_random_pixel_color(&(snake->food.pix));
+    }
   }
-  // win
-  if (snake->len >= (snake->properties.max_len)) {
-    // TODO cool animated sequence
-    snake->victory_achieved = true;
-  }
-  // draw everything
+  // DRAW BODY
   for (int i = snake->len; i >= 0; i--) {
     struct body_pix_t *b = &(snake->body[i]);
     copy_pix_color(&(pix[b->pos]), &(b->pix));
   }
-  // draw food
+  // DRAW FOOD
   copy_pix_color(&(pix[snake->food.pos]), &(snake->food.pix));
   // glowing_sides(pix, snake.food.pos, snake.food.pos, 2);
 }
@@ -196,7 +197,7 @@ void danger_noodle(pixel_t *pix) {
 void two_noodles(pixel_t *pix) {
   static snake_par_t snake1, snake2;
   if (state.recently_switched_algo) {
-    init_snake(&snake1, 100, 0, FORWARD);
+    init_snake(&snake1, 99, 0, FORWARD);
     init_snake(&snake2, 99, 100, BACKWARD);
   }
   if (snake1.victory_achieved) {
