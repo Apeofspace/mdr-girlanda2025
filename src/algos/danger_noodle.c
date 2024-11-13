@@ -35,17 +35,42 @@ typedef struct {
 
 
 int get_new_food_pos(snake_par_t *snake) {
-  const int left_border = snake->properties.domain_left_border;
-  const int right_border = left_border + snake->properties.max_len;
   bool bad = true;
-  int pos = 0;
+  int result = 0;
+  const int left_border = snake->properties.domain_left_border;
+  const int right_border = left_border + snake->properties.max_len - 1;
+  struct body_pix_t *head = &snake->body[0];
+  struct body_pix_t *tail = &snake->body[snake->len - 1];
+  int available_len_head = (head->dir == FORWARD) ? right_border - head->pos : head->pos - left_border;
+  int available_len_tail = (tail->dir == BACKWARD) ? right_border - tail->pos : tail->pos - left_border;
+  int available_len = available_len_tail + available_len_head;
+  int gen_where = ((random(0) % (uint32_t)available_len) > (uint32_t)available_len_head) ? 0 : 1;
   uint32_t t0 = GetMs();
   while (bad) {
     bad = false;
-    pos = (uint32_t)random(0) % snake->properties.max_len;
-    pos += left_border;
+    switch (gen_where) {
+    case 0: // in front
+      available_len = available_len_head;
+      if (head->dir != tail->dir) {
+        // in case tail is ahead of head after pivot
+        available_len = MIN(available_len_tail, available_len_head);
+      }
+      result = (uint32_t)random(0) % available_len;
+      result = (head->dir == FORWARD) ? right_border - result : left_border + result;
+      break;
+    case 1: // behind
+      available_len = available_len_tail;
+      if (head->dir != tail->dir) {
+        // in case tail is ahead of head after pivot
+        available_len = MIN(available_len_tail, available_len_head);
+      }
+      result = (uint32_t)random(0) % available_len;
+      result = (tail->dir == FORWARD) ? left_border + result : right_border - result;
+      break;
+    }
     for (int i = 0; i <= snake->len; i++) {
-      if (snake->body[i].pos == pos) {
+      // theoreticallt don't even need to check
+      if (snake->body[i].pos == result) {
         bad = true;
         break;
       }
@@ -53,16 +78,16 @@ int get_new_food_pos(snake_par_t *snake) {
     // timeout on rng
     if ((GetMs() - t0) >= _S_TIMEOUT_MS) {
       snake_errors.food_gen_timeout++;
-      pos = snake->properties.domain_left_border;
+      result = snake->properties.domain_left_border;
       break;
     }
   }
   // sanity check
-  if ((pos < 0) || (pos > (LEDS_NUMBER - 1))) {
+  if ((result < 0) || (result > (LEDS_NUMBER - 1))) {
     snake_errors.food_gen_pos++;
-    pos = snake->properties.domain_left_border;
+    result = snake->properties.domain_left_border;
   }
-  return pos;
+  return result;
 }
 
 void init_snake(snake_par_t *snake, int max_len, int domain_left_border, snake_dir_t initial_dir) {
@@ -132,8 +157,8 @@ void init_snake(snake_par_t *snake, int max_len, int domain_left_border, snake_d
 void snake_baseline(snake_par_t *snake, pixel_t *pix) {
   struct body_pix_t *head = &(snake->body[0]);
   int left_border = snake->properties.domain_left_border;
-  int right_border = left_border + snake->properties.max_len;
-  // move body
+  int right_border = left_border + snake->properties.max_len - 1;
+  // MOVE BODY
   for (int i = 0; i <= snake->len; i++) {
     struct body_pix_t *b = &(snake->body[i]);
     int new_pos = b->pos + b->dir;
@@ -142,7 +167,7 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
       b->dir *= -1; // flip dir when head hits the zone borders
     }
   }
-  // eat food
+  // EAT FOOD
   if (head->pos == snake->food.pos) {
     // expand snake
     struct body_pix_t *tail = &(snake->body[snake->len]);
@@ -164,21 +189,22 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
       new_pix->pos = MIN(LEDS_NUMBER - 1, new_pix->pos);
     }
     copy_pix_color(&(new_pix->pix), &(snake->food.pix));
-    // spawn new food
-    snake->food.pos = get_new_food_pos(snake);
-    set_random_pixel_color(&(snake->food.pix));
+    // win ?
+    if (snake->len >= (snake->properties.max_len)) {
+      // TODO cool animated sequence
+      snake->victory_achieved = true;
+    } else {
+      // spawn new food
+      snake->food.pos = get_new_food_pos(snake);
+      set_random_pixel_color(&(snake->food.pix));
+    }
   }
-  // win
-  if (snake->len >= (snake->properties.max_len)) {
-    // TODO cool animated sequence
-    snake->victory_achieved = true;
-  }
-  // draw everything
+  // DRAW BODY
   for (int i = snake->len; i >= 0; i--) {
     struct body_pix_t *b = &(snake->body[i]);
     copy_pix_color(&(pix[b->pos]), &(b->pix));
   }
-  // draw food
+  // DRAW FOOD
   copy_pix_color(&(pix[snake->food.pos]), &(snake->food.pix));
   // glowing_sides(pix, snake.food.pos, snake.food.pos, 2);
 }
