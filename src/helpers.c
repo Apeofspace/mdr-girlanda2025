@@ -32,9 +32,24 @@ inline void copy_pix_color(pixel_t *pix_dest, pixel_t *pix_source ) {
 }
 
 inline void set_random_pixel_color(pixel_t *pix) {
-  pix->red = random(0) % (uint16_t)(255 * state.brightness);
-  pix->green = random(0) % (uint16_t)(255 * state.brightness);
-  pix->blue = random(0) % (uint16_t)(255 * state.brightness);
+  // weighted for extra fun
+  uint8_t base_brightness = state.brightness * 255;
+  float rweight = 0.8, bweight = 0.6, gweight = 0.8;
+  uint8_t weighted_color = random(0) % 3;
+  switch (weighted_color) {
+  case 0:
+    rweight = 1.2;
+    break;
+  case 1:
+    gweight = 1.2;
+    break;
+  case 2:
+    bweight = 1;
+    break;
+  }
+  pix->red = random(0) * state.brightness * rweight;
+  pix->green = random(0) * state.brightness * gweight;
+  pix->blue = random(0) * state.brightness * bweight;
 }
 
 void glowing_sides(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t num_glowing_leds) {
