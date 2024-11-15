@@ -7,9 +7,11 @@ struct sn_errors_t {
   volatile uint32_t init_params_error;
   volatile uint32_t init_wrong_position;
   volatile uint32_t wrong_position;
+  volatile uint32_t victory_achieved ;
 } snake_errors = {
   .food_gen_pos = 0,
   .init_params_error = 0,
+  .victory_achieved = 0,
 };
 
 typedef enum {FORWARD = 1, BACKWARD = -1} snake_dir_t;
@@ -49,7 +51,7 @@ int get_new_food_pos(snake_par_t *snake) {
   }
   // get free spaces count
   int free_space = (body_leftmost - left_border) + (right_border - body_rightmost);
-  int taken_space = max_len - free_space;
+  int taken_space = max_len - free_space + 1; // + 1 for head
   // generate food position
   int food_pos = (uint32_t)random(0) % free_space;
   food_pos += left_border;
@@ -149,7 +151,9 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
     struct sn_body_segment_t *new_pix = &(snake->body[snake->body_len]);
     if ((tail->pos == left_border) || (tail->pos == right_border)) {
       // spawned on the pivot point
-      new_pix->pos = tail->pos;
+      // NOTE pivot points are special.
+      // two pixels can't share the same position there, so we go back 1
+      new_pix->pos = tail->pos + tail->dir; // go backwards 1
       new_pix->dir = tail->dir * -1;
     } else {
       // normal case
@@ -167,6 +171,7 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
     if (snake->body_len >= max_len) {
       // TODO cool animated sequence
       snake->victory_achieved = true;
+      snake_errors.victory_achieved++;
     } else {
       // spawn new food
       snake->food.pos = get_new_food_pos(snake);
