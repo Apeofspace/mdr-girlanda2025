@@ -2,7 +2,7 @@
 #include "helpers.h"
 
 #define _S_TIMEOUT_MS 300
-struct snake_errors_t {
+struct sn_errors_t {
   volatile uint32_t food_gen_pos;
   volatile uint32_t init_params_error;
   volatile uint32_t init_wrong_position;
@@ -15,29 +15,30 @@ struct snake_errors_t {
 typedef enum {FORWARD = 1, BACKWARD = -1} snake_dir_t;
 
 typedef struct {
-  struct sn_properties_t {
-    int max_len;
-    int domain_left_border; // левая граница ареала обитания (правая граница из макс длины)
-  } properties;
-  int len; // 0 = head only.
-  struct body_pix_t {
-    pixel_t pix;
+  int body_len; // 0 = head only.
+  bool victory_achieved;
+  struct sn_borders_t {
+    int left;
+    int right;
+  } borders;
+  struct sn_body_segment_t {
+    pixel_t color;
     int pos;
-    snake_dir_t dir; //1 or -1
+    snake_dir_t dir; // 1 or -1
   } body[LEDS_NUMBER];
-  struct food_pix_t {
-    pixel_t pix;
+  struct sn_food_t {
+    pixel_t color;
     int pos;
   } food;
-  bool victory_achieved;
 } snake_par_t;
 
 
 int get_new_food_pos(snake_par_t *snake) {
-  const int left_border = snake->properties.domain_left_border;
-  const int right_border = left_border + snake->properties.max_len;
-  struct body_pix_t *head = &snake->body[0];
-  struct body_pix_t *tail = &snake->body[snake->len];
+  const int left_border = snake->borders.left;
+  const int right_border = snake->borders.right;
+  const int max_len = right_border - left_border;
+  struct sn_body_segment_t *head = &snake->body[0];
+  struct sn_body_segment_t *tail = &snake->body[snake->body_len];
   // get body coordinates
   int body_leftmost = MIN(head->pos, tail->pos);
   int body_rightmost = MAX(head->pos, tail->pos);
@@ -48,7 +49,7 @@ int get_new_food_pos(snake_par_t *snake) {
   }
   // get free spaces count
   int free_space = (body_leftmost - left_border) + (right_border - body_rightmost);
-  int taken_space = snake->properties.max_len - free_space;
+  int taken_space = max_len - free_space;
   // generate food position
   int food_pos = (uint32_t)random(0) % free_space;
   food_pos += left_border;
@@ -58,28 +59,28 @@ int get_new_food_pos(snake_par_t *snake) {
   // sanity check
   if ((food_pos < left_border) || (food_pos > right_border)) {
     snake_errors.food_gen_pos++;
-    food_pos = snake->properties.domain_left_border;
+    food_pos = snake->borders.left;
   }
   return food_pos;
 }
 
-void init_snake(snake_par_t *snake, int max_len, int domain_left_border, snake_dir_t initial_dir) {
+void init_snake(snake_par_t *snake, int left_border_pos, int right_border_pos, snake_dir_t initial_dir) {
   // draw smol noodle
   // memset(snake, 0, sizeof(snake_par_t)); // auto clean
 
   // <MANUAL CLEAN>
   for (int i = 0; i < LEDS_NUMBER; i++) {
-    struct body_pix_t *b = &(snake->body[i]);
+    struct sn_body_segment_t *b = &(snake->body[i]);
     b->pos = 0;
     b->dir = FORWARD;
-    b->pix.red = 0;
-    b->pix.green = 0;
-    b->pix.blue = 0;
+    b->color.red = 0;
+    b->color.green = 0;
+    b->color.blue = 0;
   }
   snake->food.pos = 100;
-  snake->food.pix.red = 100;
-  snake->food.pix.green = 100;
-  snake->food.pix.blue = 100;
+  snake->food.color.red = 100;
+  snake->food.color.green = 100;
+  snake->food.color.blue = 100;
   snake->victory_achieved = false;
   // </MANUAL CLEAN>
 
@@ -87,9 +88,8 @@ void init_snake(snake_par_t *snake, int max_len, int domain_left_border, snake_d
   if (
     !(
       ((initial_dir == BACKWARD) || (initial_dir == FORWARD)) &&
-      ((domain_left_border >= 0) && (domain_left_border < (LEDS_NUMBER - 1))) &&
-      (max_len <= (LEDS_NUMBER - 1 - domain_left_border)) &&
-      (max_len < LEDS_NUMBER)
+      (left_border_pos >= 0) && (left_border_pos < right_border_pos) &&
+      (right_border_pos <= (LEDS_NUMBER - 1))
     )
   ) {
     snake_errors.init_params_error++;
@@ -97,18 +97,18 @@ void init_snake(snake_par_t *snake, int max_len, int domain_left_border, snake_d
     return;
   }
 
-  snake->properties.domain_left_border = domain_left_border;
-  snake->properties.max_len = max_len;
-  snake->len = 2;
-  for (int i = 0; i <= snake->len; i++) {
-    struct body_pix_t *b = &(snake->body[i]);
+  snake->borders.left = left_border_pos;
+  snake->borders.right = right_border_pos;
+  snake->body_len = 2;
+  for (int i = 0; i <= snake->body_len; i++) {
+    struct sn_body_segment_t *b = &(snake->body[i]);
     b->dir = initial_dir;
     switch (initial_dir) {
     case FORWARD:
-      b->pos = domain_left_border + snake->len - i;
+      b->pos = left_border_pos + snake->body_len - i;
       break;
     case BACKWARD:
-      b->pos = (domain_left_border + max_len - 1) - snake->len + i;
+      b->pos = right_border_pos - snake->body_len + i;
       break;
     }
     // sanity check
@@ -118,22 +118,23 @@ void init_snake(snake_par_t *snake, int max_len, int domain_left_border, snake_d
       b->pos = MAX(0, b->pos);
       b->pos = MIN(LEDS_NUMBER - 1, b->pos);
     }
-    set_random_pixel_color(&(b->pix));
+    set_random_pixel_color(&(b->color));
   }
-  set_pix_color(&(snake->body[0].pix), 255, 0, 0); // head is red
+  set_pix_color(&(snake->body[0].color), 255, 0, 0); // head is red
   // spawn new food
   snake->food.pos = get_new_food_pos(snake);
-  set_random_pixel_color(&(snake->food.pix));
+  set_random_pixel_color(&(snake->food.color));
   snake->victory_achieved = false;
 }
 
 void snake_baseline(snake_par_t *snake, pixel_t *pix) {
-  struct body_pix_t *head = &(snake->body[0]);
-  int left_border = snake->properties.domain_left_border;
-  int right_border = left_border + snake->properties.max_len;
+  struct sn_body_segment_t *head = &(snake->body[0]);
+  int left_border = snake->borders.left;
+  int right_border = snake->borders.right;
+  int max_len = right_border - left_border;
   // MOVE BODY
-  for (int i = 0; i <= snake->len; i++) {
-    struct body_pix_t *b = &(snake->body[i]);
+  for (int i = 0; i <= snake->body_len; i++) {
+    struct sn_body_segment_t *b = &(snake->body[i]);
     int new_pos = b->pos + b->dir;
     b->pos = new_pos;
     if ((new_pos == left_border) || (new_pos == right_border)) {
@@ -143,9 +144,9 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
   // EAT FOOD
   if (head->pos == snake->food.pos) {
     // expand snake
-    struct body_pix_t *tail = &(snake->body[snake->len]);
-    snake->len++;
-    struct body_pix_t *new_pix = &(snake->body[snake->len]);
+    struct sn_body_segment_t *tail = &(snake->body[snake->body_len]);
+    snake->body_len++;
+    struct sn_body_segment_t *new_pix = &(snake->body[snake->body_len]);
     if ((tail->pos == left_border) || (tail->pos == right_border)) {
       // spawned on the pivot point
       new_pix->pos = tail->pos;
@@ -161,31 +162,31 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
       new_pix->pos = MAX(0, new_pix->pos);
       new_pix->pos = MIN(LEDS_NUMBER - 1, new_pix->pos);
     }
-    copy_pix_color(&(new_pix->pix), &(snake->food.pix));
+    copy_pix_color(&(new_pix->color), &(snake->food.color));
     // win?
-    if (snake->len >= (snake->properties.max_len)) {
+    if (snake->body_len >= max_len) {
       // TODO cool animated sequence
       snake->victory_achieved = true;
     } else {
       // spawn new food
       snake->food.pos = get_new_food_pos(snake);
-      set_random_pixel_color(&(snake->food.pix));
+      set_random_pixel_color(&(snake->food.color));
     }
   }
   // DRAW BODY
-  for (int i = snake->len; i >= 0; i--) {
-    struct body_pix_t *b = &(snake->body[i]);
-    copy_pix_color(&(pix[b->pos]), &(b->pix));
+  for (int i = snake->body_len; i >= 0; i--) {
+    struct sn_body_segment_t *b = &(snake->body[i]);
+    copy_pix_color(&(pix[b->pos]), &(b->color));
   }
   // DRAW FOOD
-  copy_pix_color(&(pix[snake->food.pos]), &(snake->food.pix));
+  copy_pix_color(&(pix[snake->food.pos]), &(snake->food.color));
   // glowing_sides(pix, snake.food.pos, snake.food.pos, 2);
 }
 
 void danger_noodle(pixel_t *pix) {
   static snake_par_t snake0;
   if (state.recently_switched_algo || snake0.victory_achieved) {
-    init_snake(&snake0, LEDS_NUMBER - 1, 0, FORWARD);
+    init_snake(&snake0, 0, LEDS_NUMBER - 1, FORWARD);
   }
   clear_pixels(pix);
   snake_baseline(&snake0, pix);
@@ -195,14 +196,14 @@ void danger_noodle(pixel_t *pix) {
 void two_noodles(pixel_t *pix) {
   static snake_par_t snake1, snake2;
   if (state.recently_switched_algo) {
-    init_snake(&snake1, 99, 0, FORWARD);
-    init_snake(&snake2, 99, 100, BACKWARD);
+    init_snake(&snake1, 0, 99, FORWARD);
+    init_snake(&snake2, 100, 199, BACKWARD);
   }
   if (snake1.victory_achieved) {
-    init_snake(&snake1, 99, 0, FORWARD);
+    init_snake(&snake1, 0, 99, FORWARD);
   }
   if (snake2.victory_achieved) {
-    init_snake(&snake2, 99, 100, BACKWARD);
+    init_snake(&snake2, 100, 199, BACKWARD);
   }
   clear_pixels(pix);
   snake_baseline(&snake1, pix);
