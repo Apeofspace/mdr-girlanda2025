@@ -131,7 +131,7 @@ void init_snake(snake_par_t *snake, int left_border_pos, int right_border_pos, s
   snake->victory_achieved = false;
 }
 
-void snake_baseline(snake_par_t *snake, pixel_t *pix) {
+void snake_step(snake_par_t *snake, pixel_t *pix) {
   struct sn_body_segment_t *head = &(snake->body[0]);
   int left_border = snake->borders.left;
   int right_border = snake->borders.right;
@@ -192,7 +192,7 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
 
 void danger_noodle(pixel_t *pix) {
   static snake_par_t snake0;
-  _s_steps += ((float)(state.ms - state.last_ms) / _S_MS_PER_STEP) * state.speed;
+  _s_steps += get_delta_steps(_S_MS_PER_STEP);
   while (_s_steps >= 1) {
     _s_steps--;
     if (state.recently_switched_algo || snake0.victory_achieved) {
@@ -200,18 +200,18 @@ void danger_noodle(pixel_t *pix) {
       _s_steps = 0;
     }
     clear_pixels(pix);
-    snake_baseline(&snake0, pix);
+    snake_step(&snake0, pix);
   }
 }
 
 void two_noodles(pixel_t *pix) {
   static snake_par_t snake1, snake2;
-  _s_steps += ((float)(state.ms - state.last_ms) / _S_MS_PER_STEP) * state.speed;
+  _s_steps += get_delta_steps(_S_MS_PER_STEP);
   while (_s_steps >= 1) {
     _s_steps--;
     if (state.recently_switched_algo) {
       init_snake(&snake1, 0, 99, FORWARD);
-      init_snake(&snake2, 100, 199, BACKWARD);
+      init_snake(&snake2, 100, 199, FORWARD);
       _s_steps = 0;
     }
     if (snake1.victory_achieved) {
@@ -221,7 +221,7 @@ void two_noodles(pixel_t *pix) {
       init_snake(&snake2, 100, 199, BACKWARD);
     }
     clear_pixels(pix);
-    snake_baseline(&snake1, pix);
-    snake_baseline(&snake2, pix);
+    snake_step(&snake1, pix);
+    snake_step(&snake2, pix);
   }
 }

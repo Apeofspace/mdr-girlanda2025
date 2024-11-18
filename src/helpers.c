@@ -102,8 +102,15 @@ void glowing_gauss(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t
 }
 
 inline float get_delta_period(const uint32_t period) {
-  uint32_t delta_t = state.ms - state.last_ms;
-  return (float)(delta_t % period) / period;
+  if (state.last_ms > state.ms)
+    return 0;
+  return (float)((state.ms - state.last_ms) % period) / period;
+}
+
+inline float get_delta_steps(const float ms_per_step) {
+  if (state.last_ms > state.ms)
+    return 0;
+  return ((float)(state.ms - state.last_ms) / ms_per_step) * state.speed;
 }
 
 // Linear Congruential Generator (LCG)
