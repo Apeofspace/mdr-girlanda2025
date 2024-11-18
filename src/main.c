@@ -227,10 +227,11 @@ int main() {
   init_RNG();
 
   memset(pixels, 0, sizeof(pixels));
+  state.recently_switched_algo = true;
 
   /* !!Регистрация алгоритмов!! */
-  register_alg(danger_noodle);
   register_alg(two_noodles);
+  register_alg(danger_noodle);
   register_alg(breath_colors2);
   register_alg(scratch);
   register_alg(teleporting_snakes);
