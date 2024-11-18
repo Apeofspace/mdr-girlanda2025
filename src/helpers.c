@@ -1,6 +1,7 @@
 #include "helpers.h"
 #include "MDR32F9Qx_adc.h"
 #include "MDR32F9Qx_port.h"
+#include <math.h>
 
 volatile uint32_t msSinceStart = 0;
 bool SysTickInitialized = false;
@@ -72,6 +73,32 @@ void glowing_sides(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t
       pix[led_ind].blue += brightness;
     }
   }
+}
+
+void glowing_gauss(pixel_t *pix, uint16_t ind_left, uint16_t ind_right, uint16_t max_leds, float dispersion) {
+  /*
+  Сияние с нормальным распределением.
+  Рекоммендуемые значения max_leds = 5..10, dispersion = 1..3
+  */
+  const uint8_t max_br = 255 * state.brightness;
+  for (uint8_t i = 1; i <= max_leds; i++) {
+    float k = 0.39894 / dispersion * expf((-(i ^ 2)) / (2 * dispersion));
+    uint8_t brightness = max_br * k;
+    uint16_t led_ind;
+    if (ind_left > i) {
+      led_ind = ind_left - i;
+      pix[led_ind].red += brightness;
+      pix[led_ind].green += brightness;
+      pix[led_ind].blue += brightness;
+    }
+    if (ind_right < (LEDS_NUMBER - i)) {
+      led_ind = ind_right + i;
+      pix[led_ind].red += brightness;
+      pix[led_ind].green += brightness;
+      pix[led_ind].blue += brightness;
+    }
+  }
+
 }
 
 inline float get_delta_period(const uint32_t period) {

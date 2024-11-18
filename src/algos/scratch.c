@@ -18,7 +18,7 @@ typedef struct {
 
 uint16_t baseline_scratch(pixel_t *pix) {
   // бегает в две стороны и скрэтчит
-  // возвращает индекс начала колонки 
+  // возвращает индекс начала колонки
   const float br = state.brightness;
   const uint8_t max_br = 255 * br;
   const double rc_scratch_threshold1 = 0.8;
@@ -111,6 +111,7 @@ uint16_t baseline_scratch(pixel_t *pix) {
 void scratch(pixel_t *pix) {
   clear_pixels(pix);
   uint16_t ind = baseline_scratch(pix);
+  // glowing_gauss(pix, ind, ind + _SCR_LEN - 1, 5, 2);
   glowing_sides(pix, ind, ind + _SCR_LEN - 1, 10);
 }
 

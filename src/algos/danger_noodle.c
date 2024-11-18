@@ -185,7 +185,7 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
   }
   // DRAW FOOD
   copy_pix_color(&(pix[snake->food.pos]), &(snake->food.color));
-  // glowing_sides(pix, snake.food.pos, snake.food.pos, 2);
+  // glowing_gauss(pix, snake->food.pos, snake->food.pos, 7, 2);
 }
 
 void danger_noodle(pixel_t *pix) {
