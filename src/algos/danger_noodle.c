@@ -41,14 +41,13 @@ typedef struct {
 
 float _s_steps = 0;
 snake_food_t snake_food;
-snake_par_t snake1, snake2;
-snake_par_t *all_snakes[2] = {&snake1, &snake2};
+snake_par_t snakes[2];
 
-int get_new_food_pos(snake_par_t *snakes[], uint8_t snake_count) {
+int get_new_food_pos(snake_par_t *sn_arr, uint8_t snake_count) {
   int possible_foods[snake_count];
   // make a list of possible food positions for each snake
   for (int i = 0; i < snake_count; i++) {
-    snake_par_t *snake = snakes[i];
+    snake_par_t *snake = &sn_arr[i];
     const int left_border = snake->borders.left;
     const int right_border = snake->borders.right;
     const int max_len = right_border - left_border;
@@ -82,8 +81,8 @@ int get_new_food_pos(snake_par_t *snakes[], uint8_t snake_count) {
   return possible_foods[(uint32_t)random(0) % snake_count];
 }
 
-void spawn_new_food(snake_food_t *food, snake_par_t *snakes[], uint8_t snake_count) {
-  food->pos = get_new_food_pos(snakes, snake_count);
+void spawn_new_food(snake_food_t *food, snake_par_t sn_arr[], uint8_t snake_count) {
+  food->pos = get_new_food_pos(sn_arr, snake_count);
   set_random_pixel_color(&(food->color));
   food->eaten = false;
 }
@@ -202,43 +201,43 @@ void snake_step(snake_par_t *snake, pixel_t *pix) {
 }
 
 void danger_noodle(pixel_t *pix) {
-  if (state.recently_switched_algo || snake1.max_size_achieved) {
-    init_snake(&snake1, &snake_food, 0, LEDS_NUMBER - 1, FORWARD);
-    spawn_new_food(&snake_food, all_snakes, 1);
+  if (state.recently_switched_algo || snakes[0].max_size_achieved) {
+    init_snake(&snakes[0], &snake_food, 0, LEDS_NUMBER - 1, FORWARD);
+    spawn_new_food(&snake_food, snakes, 1);
     _s_steps = 0;
   }
   _s_steps += get_delta_steps(_S_MS_PER_STEP);
   while (_s_steps >= 1) {
     _s_steps--;
     if (snake_food.eaten) {
-      spawn_new_food(&snake_food, all_snakes, 1);
+      spawn_new_food(&snake_food, snakes, 1);
     }
     clear_pixels(pix);
-    snake_step(&snake1, pix);
+    snake_step(&snakes[0], pix);
   }
 }
 
 void two_noodles(pixel_t *pix) {
   if (state.recently_switched_algo) {
-    init_snake(&snake1, &snake_food, 0, 99, FORWARD);
-    init_snake(&snake2, &snake_food, 100, 199, FORWARD);
+    init_snake(&snakes[0], &snake_food, 0, 99, FORWARD);
+    init_snake(&snakes[1], &snake_food, 100, 199, FORWARD);
     snake_food.eaten = true;
     _s_steps = 0;
   }
   _s_steps += get_delta_steps(_S_MS_PER_STEP);
   while (_s_steps >= 1) {
     _s_steps--;
-    if (snake1.max_size_achieved) {
-      init_snake(&snake1, &snake_food, 0, 99, FORWARD);
+    if (snakes[0].max_size_achieved) {
+      init_snake(&snakes[0], &snake_food, 0, 99, FORWARD);
     }
-    if (snake2.max_size_achieved) {
-      init_snake(&snake2, &snake_food, 100, 199, BACKWARD);
+    if (snakes[1].max_size_achieved) {
+      init_snake(&snakes[1], &snake_food, 100, 199, BACKWARD);
     }
     if (snake_food.eaten) {
-      spawn_new_food(&snake_food, all_snakes, 2);
+      spawn_new_food(&snake_food, snakes, 2);
     }
     clear_pixels(pix);
-    snake_step(&snake1, pix);
-    snake_step(&snake2, pix);
+    snake_step(&snakes[0], pix);
+    snake_step(&snakes[1], pix);
   }
 }
