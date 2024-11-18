@@ -1,7 +1,9 @@
 #include "main.h"
 #include "helpers.h"
 
-#define _S_TIMEOUT_MS 300
+#define _S_MS_PER_STEP 10
+
+float _s_steps = 0;
 struct sn_errors_t {
   volatile uint32_t food_gen_pos;
   volatile uint32_t init_params_error;
@@ -190,27 +192,36 @@ void snake_baseline(snake_par_t *snake, pixel_t *pix) {
 
 void danger_noodle(pixel_t *pix) {
   static snake_par_t snake0;
-  if (state.recently_switched_algo || snake0.victory_achieved) {
-    init_snake(&snake0, 0, LEDS_NUMBER - 1, FORWARD);
+  _s_steps += ((float)(state.ms - state.last_ms) / _S_MS_PER_STEP) * state.speed;
+  while (_s_steps >= 1) {
+    _s_steps--;
+    if (state.recently_switched_algo || snake0.victory_achieved) {
+      init_snake(&snake0, 0, LEDS_NUMBER - 1, FORWARD);
+      _s_steps = 0;
+    }
+    clear_pixels(pix);
+    snake_baseline(&snake0, pix);
   }
-  clear_pixels(pix);
-  snake_baseline(&snake0, pix);
 }
-
 
 void two_noodles(pixel_t *pix) {
   static snake_par_t snake1, snake2;
-  if (state.recently_switched_algo) {
-    init_snake(&snake1, 0, 99, FORWARD);
-    init_snake(&snake2, 100, 199, BACKWARD);
+  _s_steps += ((float)(state.ms - state.last_ms) / _S_MS_PER_STEP) * state.speed;
+  while (_s_steps >= 1) {
+    _s_steps--;
+    if (state.recently_switched_algo) {
+      init_snake(&snake1, 0, 99, FORWARD);
+      init_snake(&snake2, 100, 199, BACKWARD);
+      _s_steps = 0;
+    }
+    if (snake1.victory_achieved) {
+      init_snake(&snake1, 0, 99, FORWARD);
+    }
+    if (snake2.victory_achieved) {
+      init_snake(&snake2, 100, 199, BACKWARD);
+    }
+    clear_pixels(pix);
+    snake_baseline(&snake1, pix);
+    snake_baseline(&snake2, pix);
   }
-  if (snake1.victory_achieved) {
-    init_snake(&snake1, 0, 99, FORWARD);
-  }
-  if (snake2.victory_achieved) {
-    init_snake(&snake2, 100, 199, BACKWARD);
-  }
-  clear_pixels(pix);
-  snake_baseline(&snake1, pix);
-  snake_baseline(&snake2, pix);
 }
