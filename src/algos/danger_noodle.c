@@ -2,7 +2,7 @@
 #include "helpers.h"
 
 #define _S_MS_PER_STEP 10
-
+#define MAX_SNAKES 5
 
 struct sn_errors_t {
   volatile uint32_t food_gen_pos;
@@ -41,7 +41,7 @@ typedef struct {
 
 float _s_steps = 0;
 snake_food_t snake_food;
-snake_par_t snakes[2];
+snake_par_t snakes[MAX_SNAKES];
 
 int get_new_food_pos(snake_par_t *sn_arr, uint8_t snake_count) {
   int possible_foods[snake_count];
@@ -239,5 +239,44 @@ void two_noodles(pixel_t *pix) {
     clear_pixels(pix);
     snake_step(&snakes[0], pix);
     snake_step(&snakes[1], pix);
+  }
+}
+
+void hella_noodles(pixel_t *pix) {
+  /* Bunch of snakes moving slowly */
+
+  int noodles = 5;
+  noodles = MIN(noodles, MAX_SNAKES);
+
+  if (state.recently_switched_algo) {
+    int left = 0, inc = LEDS_NUMBER / noodles, right = inc-1;
+    for (int i = 0; i < noodles; i++) {
+      left = MAX(left, 0);
+      right = MIN(right, LEDS_NUMBER);
+      init_snake(&snakes[i], &snake_food, left, right, FORWARD);
+      left += inc;
+      right += inc;
+    }
+    snake_food.eaten = true;
+    _s_steps = 0;
+  }
+  _s_steps += get_delta_steps(_S_MS_PER_STEP * 2);
+  while (_s_steps >= 1) {
+    _s_steps--;
+    int left = 0, inc = 40, right = 39;
+    for (int i = 0; i < noodles; i++) {
+      left += inc;
+      right += inc;
+      if (snakes[i].max_size_achieved) {
+        init_snake(&snakes[i], &snake_food, left, right, FORWARD);
+      }
+    }
+    if (snake_food.eaten) {
+      spawn_new_food(&snake_food, snakes, noodles);
+    }
+    clear_pixels(pix);
+    for (int i = 0; i < noodles; i++) {
+      snake_step(&snakes[i], pix);
+    }
   }
 }

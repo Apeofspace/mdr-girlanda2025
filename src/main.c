@@ -231,6 +231,7 @@ int main() {
 
   /* !!Регистрация алгоритмов!! */
   register_alg(two_noodles);
+  register_alg(hella_noodles);
   register_alg(danger_noodle);
   register_alg(breath_colors2);
   register_alg(scratch);
