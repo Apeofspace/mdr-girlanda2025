@@ -5,11 +5,10 @@ endif()
 
 #-----PROJECT NAME-----
 # this hack puts dir name as project name
-# for serious project its better to set up actual name (also do it in Makefile)
-# (also do it in JLink files)
 cmake_path(GET CMAKE_CURRENT_SOURCE_DIR FILENAME ProjectName)   
 string(REPLACE " " "_" ProjectId ${ProjectName})
 project(${ProjectName})
+set(OUTPUT_NAME ${OUTPUT_BIN_NAME})
 
 #-----MCU-----
 set(MCPU cortex-m3)
@@ -37,24 +36,36 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 #----SOURCES----
 file(GLOB_RECURSE C_SRC CONFIGURE_DEPENDS "src/*.c" )
-# file(GLOB_RECURSE C_SRC CONFIGURE_DEPENDS "src/algos/*.c" )
 
 file(GLOB_RECURSE C_LIBS CONFIGURE_DEPENDS
-    ${CMAKE_SOURCE_DIR}/lib/*.c
+   lib/*.c
     # problems with bkp and eeprom and IRQ templates
     )
 
-include_directories(
-   ${CMAKE_SOURCE_DIR}/src 
-   ${CMAKE_SOURCE_DIR}/lib 
-   ${CMAKE_SOURCE_DIR}/lib/Config 
-   ${CMAKE_SOURCE_DIR}/lib/CMSIS/CM3/DeviceSupport/MDR32F9Qx/inc 
-   ${CMAKE_SOURCE_DIR}/lib/MDR32F9Qx_StdPeriph_Driver/inc 
-   ${CMAKE_SOURCE_DIR}/lib/MDR32F9Qx_StdPeriph_Driver/inc/USB_Library 
-   ${CMAKE_SOURCE_DIR}/lib/CMSIS/CM3/CoreSupport 
-   ${CMAKE_SOURCE_DIR}/lib/CMSIS/CM3/DeviceSupport/MDR32F9Qx/startup/gcc 
-   # ${CMAKE_SOURCE_DIR}/lib/MDR32F9Qx_StdPeriph_Driver/inc/IRQ_Handler_Template
-   )
+MACRO(HEADER_DIRECTORIES return_list)
+    FILE(GLOB_RECURSE new_list CONFIGURE_DEPENDS *.h)
+    SET(dir_list "")
+    FOREACH(file_path ${new_list})
+        GET_FILENAME_COMPONENT(dir_path ${file_path} PATH)
+        SET(dir_list ${dir_list} ${dir_path})
+    ENDFOREACH()
+    LIST(REMOVE_DUPLICATES dir_list)
+    SET(${return_list} ${dir_list})
+ENDMACRO()
+
+HEADER_DIRECTORIES(INCLUDE_DIRS)
+# include_directories(${INCLUDE_DIRS}) # use target_include_directories instead
+
+# include_directories(
+#    src 
+#    lib 
+#    lib/Config 
+#    lib/CMSIS/CM3/DeviceSupport/MDR32F9Qx/inc 
+#    lib/MDR32F9Qx_StdPeriph_Driver/inc 
+#    lib/MDR32F9Qx_StdPeriph_Driver/inc/USB_Library 
+#    lib/CMSIS/CM3/CoreSupport 
+#    lib/CMSIS/CM3/DeviceSupport/MDR32F9Qx/startup/gcc 
+#    )
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/lib/CMSIS/CM3/DeviceSupport/MDR32F9Qx/startup/gcc/MDR32F9Qx.ld)
 set(STARTUP_SCRIPT ${CMAKE_SOURCE_DIR}/lib/CMSIS/CM3/DeviceSupport/MDR32F9Qx/startup/gcc/startup_MDR32F9Qx.s) 
@@ -85,9 +96,13 @@ add_link_options(
     -T ${LINKER_SCRIPT}
     -mcpu=${MCPU}
     -mthumb
-    -specs=nano.specs 
-    -lc -lm -lnosys 
-    -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map,--cref -Wl,--gc-sections)
+    # -lm 
+    # --specs=nano.specs 
+    -lm -lnosys 
+    --specs=nosys.specs 
+    -Wl,-Map=${PROJECT_BINARY_DIR}/${PROJECT_NAME}.map,--cref
+    -Wl,--gc-sections
+)
 
 # Uncomment to mitigate c++17 absolute addresses warnings
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} 
@@ -101,10 +116,10 @@ add_link_options(
 #-----BUILD TYPE-----
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     message(STATUS "Maximum optimization for speed")
-    add_compile_options(-Ofast)
+    add_compile_options(-O3)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
     message(STATUS "Maximum optimization for speed, debug info included")
-    add_compile_options(-Ofast -g)
+    add_compile_options(-O3 -g)
 elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "MinSizeRel")
     message(STATUS "Maximum optimization for size")
     add_compile_options(-Os)
@@ -114,13 +129,12 @@ else ()
 endif ()
 
 #-----BUILD COMMANDS-----
-set(OUTPUT_NAME output)
-# set(OUTPUT_NAME ${PROJECT_NAME})
 add_executable(${OUTPUT_NAME}.elf ${C_SRC} ${C_LIBS} ${STARTUP_SCRIPT} ${LINKER_SCRIPT})
 set(HEX_FILE ${PROJECT_BINARY_DIR}/${OUTPUT_NAME}.hex)
 set(BIN_FILE ${PROJECT_BINARY_DIR}/${OUTPUT_NAME}.bin)
 
 target_link_libraries(${OUTPUT_NAME}.elf m) # link math.h 
+target_include_directories(${OUTPUT_NAME}.elf PRIVATE ${INCLUDE_DIRS})
 # target_link_libraries(${OUTPUT_NAME}.elf c)
 
 add_custom_command(TARGET ${OUTPUT_NAME}.elf POST_BUILD
@@ -128,4 +142,6 @@ add_custom_command(TARGET ${OUTPUT_NAME}.elf POST_BUILD
     COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${OUTPUT_NAME}.elf> ${BIN_FILE}
     COMMENT "Building ${HEX_FILE}
     Building ${BIN_FILE}")
+
+
 
