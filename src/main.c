@@ -99,14 +99,14 @@ static void init_SPI() {
   SPI_init_struct.SSP_HardwareFlowControl = SSP_HardwareFlowControl_None;
   SSP_Init(MDR_SSP2, &SPI_init_struct);
 
-  // DMA
-  RST_CLK_PCLKcmd(RST_CLK_PCLK_SSP1 | RST_CLK_PCLK_SSP2 | RST_CLK_PCLK_DMA, ENABLE);
-  /* Disable all DMA request */
-  MDR_DMA->CHNL_REQ_MASK_CLR = 0xFFFFFFFF;
-  MDR_DMA->CHNL_USEBURST_CLR = 0xFFFFFFFF;
-  DMA_DeInit();
-  NVIC_ClearPendingIRQ(DMA_IRQn);
-  NVIC_EnableIRQ(DMA_IRQn);
+  // // DMA
+  // RST_CLK_PCLKcmd(RST_CLK_PCLK_SSP1 | RST_CLK_PCLK_SSP2 | RST_CLK_PCLK_DMA, ENABLE);
+  // /* Disable all DMA request */
+  // MDR_DMA->CHNL_REQ_MASK_CLR = 0xFFFFFFFF;
+  // MDR_DMA->CHNL_USEBURST_CLR = 0xFFFFFFFF;
+  // DMA_DeInit();
+  // NVIC_ClearPendingIRQ(DMA_IRQn);
+  // NVIC_EnableIRQ(DMA_IRQn);
 
   SSP_Cmd(MDR_SSP2, ENABLE);
 }

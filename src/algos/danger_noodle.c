@@ -244,10 +244,10 @@ void two_noodles(pixel_t *pix) {
 
 void hella_noodles(pixel_t *pix) {
   /* Bunch of snakes moving slowly */
-
   int noodles = 5;
-  noodles = MIN(noodles, MAX_SNAKES);
+  int slowness_factor = 2;
 
+  noodles = MIN(noodles, MAX_SNAKES);
   if (state.recently_switched_algo) {
     int left = 0, inc = LEDS_NUMBER / noodles, right = inc-1;
     for (int i = 0; i < noodles; i++) {
@@ -260,7 +260,7 @@ void hella_noodles(pixel_t *pix) {
     snake_food.eaten = true;
     _s_steps = 0;
   }
-  _s_steps += get_delta_steps(_S_MS_PER_STEP * 2);
+  _s_steps += get_delta_steps(_S_MS_PER_STEP * slowness_factor);
   while (_s_steps >= 1) {
     _s_steps--;
     int left = 0, inc = 40, right = 39;
